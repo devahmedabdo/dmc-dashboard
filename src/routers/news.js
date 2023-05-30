@@ -14,26 +14,54 @@ const uploads = multer({
     cb(null, true);
   },
 });
-router.post("/add", auth, async (req, res) => {
+router.post("/add", auth, uploads.single("image"), async (req, res) => {
   try {
     const news = await new News(req.body);
     news.publisher = req.writer._id;
+    // news.image = req.file.buffer;
+
+    // blog        find
+    // mainComment creat
+    // mainComment save
+    // blog.comments.push()
+    // blog.comments.save()
+
+    // mainComment find
+    // branch creat
+    // branch save
+    // mainComment.replies push branch
+    // mainComment.save()
+
     await news.save();
     res.status(200).send(news);
   } catch (e) {
     res.status(400).send(e.message);
   }
 });
-router.post("/add/:id", auth, uploads.single("image"), async (req, res) => {
-  try {
-    const news = await  News.findById(req.params.id);
-    news.image = req.file.buffer;
-    await news.save();
-    res.status(200).send(news);
-  } catch (e) {
-    res.status(400).send(e.message);
+router.patch(
+  "/replies/:id",
+  auth,
+  uploads.single("image"),
+  async (req, res) => {
+    try {
+      const mainNews = await News.find({});
+      // publisher: req.writer._id,
+
+      if (!mainNews) {
+        return res.status(200).send("no main news");
+      }
+      const branchNews = await new News(req.body);
+      // branchNews.publisher = req.writer._id;
+      // news.image = req.file.buffer;
+      // mainNews.replies.push(branchNews);
+      console.log(mainNews);
+      // await mainNews.save();
+      res.status(200).send(mainNews);
+    } catch (e) {
+      res.status(400).send(e.message);
+    }
   }
-});
+);
 
 router.get("/news/:id", auth, async (req, res) => {
   try {
@@ -61,28 +89,28 @@ router.get("/news", auth, async (req, res) => {
     res.status(400).send(e.message);
   }
 });
-router.patch("/news/:id", auth, uploads.single("image"), async (req, res) => {
-  try {
-    const news = await News.findOne({
-      _id: req.params.id,
-      publisher: req.writer._id,
-    });
-    if (!news) {
-      return res.status(404).send("No News found to edit");
-    }
-    const updates = Object.keys(req.body);
-    updates.forEach((e) => {
-      news[e] = req.body[e];
-    });
-    if (req.file) {
-      news.image = req.file.buffer;
-    }
-    await news.save();
-    res.status(200).send(news);
-  } catch (e) {
-    res.status(400).send(e.message);
-  }
-});
+// router.patch("/news/:id", auth, uploads.single("image"), async (req, res) => {
+//   try {
+//     const news = await News.findOne({
+//       _id: req.params.id,
+//       publisher: req.writer._id,
+//     });
+//     if (!news) {
+//       return res.status(404).send("No News found to edit");
+//     }
+//     const updates = Object.keys(req.body);
+//     updates.forEach((e) => {
+//       news[e] = req.body[e];
+//     });
+//     if (req.file) {
+//       news.image = req.file.buffer;
+//     }
+//     await news.save();
+//     res.status(200).send(news);
+//   } catch (e) {
+//     res.status(400).send(e.message);
+//   }
+// });
 router.delete("/news/:id", auth, async (req, res) => {
   const news = await News.findOneAndDelete({
     _id: req.params.id,
@@ -93,5 +121,25 @@ router.delete("/news/:id", auth, async (req, res) => {
   }
   res.status(200).send(news);
 });
+router.get("/timeline", async (req, res) => {
+  try {
+    let timeline = await News.find({});
+    let arr = [];
+    for (let i = 0; i < timeline.length; i++) {
+      await timeline[i].populate("publisher");
+      arr.push(timeline[i]);
+    }
 
+    res.status(200).send(arr);
+  } catch (e) {
+    res.status(401).send("401" + e);
+  }
+});
+router.get("/t", auth, (req, res) => {
+  try {
+    res.status(200).send("hellow");
+  } catch (e) {
+    res.status(401).send("401" + e);
+  }
+});
 module.exports = router;

@@ -3,7 +3,12 @@ const validator = require("validator");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const writerSchema = mongoose.Schema({
-  name: {
+  firstName: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  lastName: {
     type: String,
     required: true,
     trim: true,
@@ -13,8 +18,8 @@ const writerSchema = mongoose.Schema({
     required: true,
     trim: true,
     validate(value) {
-      if (value < 0) {
-        throw new Error("Age must be positive number");
+      if (value < 16) {
+        throw new Error("Age must be larger than 15");
       }
     },
   },
@@ -23,17 +28,16 @@ const writerSchema = mongoose.Schema({
     required: true,
     trim: true,
     validate(value) {
-      let egNumber = new RegExp("^(\\+?2)?(01)(0|1|2|5)(\\d{8})$");
-      if (!egNumber.test(value)) {
-        throw new Error("Please Enter an Egyptian number");
+      if (!validator.isMobilePhone(value)) {
+        throw new Error("Please Enter a valid phone number");
       }
     },
   },
   email: {
     type: String,
     required: true,
-    trim: true,
-    unique: true,
+    // trim: true,
+    // unique: true,
     lowercase: true,
     validate(value) {
       if (!validator.isEmail(value)) {
@@ -41,30 +45,65 @@ const writerSchema = mongoose.Schema({
       }
     },
   },
+  // isAdmin: {
+  //   type: Boolean,
+  //   default: false,
+  // },
   password: {
     type: String,
     required: true,
     trim: true,
     minLength: 8,
-    validate(value) {
-      let strongPassword = new RegExp(
-        "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])"
-      );
-      if (!strongPassword.test(value)) {
-        throw new Error(
-          "Password must include small and capital letter , symbols and numbers"
-        );
-      }
-    },
+    // validate(value) {
+    //   let strongPassword = new RegExp(
+    //     "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])"
+    //   );
+    //   if (!strongPassword.test(value)) {
+    //     throw new Error(
+    //       "Password must include small and capital letter , symbols and numbers"
+    //     );
+    //   }
+    // },
   },
+  // city: {
+  //   type: String,
+  //   required: true,
+  //   trim: true,
+  // },
+  // street: {
+  //   type: String,
+  //   required: true,
+  //   trim: true,
+  // },
+  // governate: {
+  //   type: String,
+  //   required: true,
+  //   trim: true,
+  // },
+  // country: {
+  //   type: String,
+  //   required: true,
+  //   trim: true,
+  // },
+  // gender: {
+  //   type: String,
+  //   required: true,
+  //   trim: true,
+  // },
+  // accountType: {
+  //   type: String,
+  //   required: true,
+  //   trim: true,
+  // },
   tokens: [
     {
       type: String,
-      required: true,
+      // required: true,
     },
   ],
   avatar: {
-    type: Buffer,
+    type: String,
+    // required: true,
   },
 });
 

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+
 const newsSchema = mongoose.Schema(
   {
     description: {
@@ -11,12 +12,29 @@ const newsSchema = mongoose.Schema(
       required: true,
       trim: true,
     },
+
+    replies: {
+      type: Array,
+      // required: true,
+      // trim: true,
+      // default: [],
+    },
+
     publisher: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       ref: "Writer",
     },
-    image: {
+    image1: {
+      type: Buffer,
+    },
+    image2: {
+      type: Buffer,
+    },
+    image3: {
+      type: Buffer,
+    },
+    image4: {
       type: Buffer,
     },
   },
