@@ -43,6 +43,19 @@ router.get("/", async (req, res) => {
     res.status(400).send(e);
   }
 });
+router.get("/users", async (req, res) => {
+  try {
+    const writer = await Writer.find();
+    // console.log(req.body);
+
+    // const token = await writer.generateToken();
+
+    res.send(writer);
+    // res.send({ writer, token });
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
 router.post("/writerImg", auth, uploads.single("avatar"), async (req, res) => {
   console.log(req.file);
   try {
