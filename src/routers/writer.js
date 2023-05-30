@@ -32,12 +32,12 @@ router.post("/signup", async (req, res) => {
 });
 router.get("/", async (req, res) => {
   try {
-    const writer = await Writer.find();
+    // const writer = await Writer.find();
     // console.log(req.body);
 
     // const token = await writer.generateToken();
 
-    res.send(writer);
+    res.send("hellow");
     // res.send({ writer, token });
   } catch (e) {
     res.status(400).send(e);
