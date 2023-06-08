@@ -1,17 +1,19 @@
 const express = require("express");
-const writerRouter = require("./src/routers/writer");
-const newsRouter = require("./src/routers/news");
+const writerRouter = require("./routers/writer");
+const newsRouter = require("./routers/news");
+const adminRouter = require("./routers/admin");
 const app = express();
 require("dotenv").config();
 const port = process.env.PORT;
 const cors = require("cors");
 // connect database
-require("./src/db/mongoose");
+require("./db/mongoose");
 // to use my route in front
 app.use(cors());
 // parse automatic
 app.use(express.json());
 //
+app.use(adminRouter);
 app.use(writerRouter);
 app.use(newsRouter);
 

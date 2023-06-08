@@ -1,85 +1,54 @@
 const express = require("express");
 const router = express.Router();
 
-/////
-////
-const Writer = require("../models/writer");
-const multer = require("multer");
+const Admin = require("../models/admin");
 const auth = require("../middelware/auth");
-const uploads = multer({
-  limits: {
-    fieldSize: 1000000,
-  },
-  fileFilter(req, file, cb) {
-    if (!file.originalname.match(/\.(jpg|png|jpeg|gif)$/)) {
-      return cb(new Error("Please upload an image"));
-    }
-    cb(null, true);
-  },
-});
-router.post("/signup", async (req, res) => {
-  try {
-    const writer = await new Writer(req.body);
-    console.log(req.body);
 
-    // const token = await writer.generateToken();
-    await writer.save();
-    res.send();
-    // res.send({ writer, token });
+// admin
+router.post("/admin", async (req, res) => {
+  try {
+    const admin = await new Admin(req.body);
+    await admin.save();
+    res.status(201).send(admin);
   } catch (e) {
     res.status(400).send(e);
   }
 });
-router.get("/", async (req, res) => {
+
+router.get("/admins", auth.admin([]), async (req, res) => {
   try {
-    // const writer = await Writer.find();
-    // console.log(req.body);
+    const page = +req.query.page || 0;
+    const limit = +process.env.LIMIT;
 
-    // const token = await writer.generateToken();
+    const admins = await Admin.aggregate([
+      {
+        $facet: {
+          data: [{ $match: {} }, { $skip: page * limit }, { $limit: limit }],
+          total: [{ $count: "count" }],
+        },
+      },
+    ]);
 
-    res.send("hellow");
-    // res.send({ writer, token });
+    res.send({
+      page,
+      limit,
+      total: admins[0].total[0].count,
+      admins: admins[0].data,
+    });
   } catch (e) {
     res.status(400).send(e);
   }
 });
-router.get("/users", async (req, res) => {
-  try {
-    const writer = await Writer.find();
-    // console.log(req.body);
-
-    // const token = await writer.generateToken();
-
-    res.send(writer);
-    // res.send({ writer, token });
-  } catch (e) {
-    res.status(400).send(e);
-  }
-});
-router.post(
-  "/writerImg",
-  auth.auth,
-  uploads.single("avatar"),
-  async (req, res) => {
-    console.log(req.file);
-    try {
-      req.writer.avatar = req.file.buffer;
-      await req.writer.save();
-      res.send();
-    } catch (e) {
-      res.status(400).send(e.message);
-    }
-  }
-);
 router.post("/login", async (req, res) => {
   try {
-    const writer = await Writer.findByCredentials(
+    const admin = await Admin.findByCredentials(
       req.body.email,
       req.body.password
     );
-    const token = await writer.generateToken();
+    console.log(admin);
+    const token = await admin.generateToken();
 
-    res.send({ writer, token });
+    res.send({ admin, token });
   } catch (e) {
     res.status(401).send(e.message);
   }

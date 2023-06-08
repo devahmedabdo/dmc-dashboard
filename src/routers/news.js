@@ -14,7 +14,7 @@ const uploads = multer({
     cb(null, true);
   },
 });
-router.post("/add", auth, uploads.single("image"), async (req, res) => {
+router.post("/add", auth.auth, uploads.single("image"), async (req, res) => {
   try {
     const news = await new News(req.body);
     news.publisher = req.writer._id;
@@ -40,7 +40,7 @@ router.post("/add", auth, uploads.single("image"), async (req, res) => {
 });
 router.patch(
   "/replies/:id",
-  auth,
+  auth.auth,
   uploads.single("image"),
   async (req, res) => {
     try {
@@ -63,7 +63,7 @@ router.patch(
   }
 );
 
-router.get("/news/:id", auth, async (req, res) => {
+router.get("/news/:id", auth.auth, async (req, res) => {
   try {
     const news = await News.findOne({
       _id: req.params.id,
@@ -78,7 +78,7 @@ router.get("/news/:id", auth, async (req, res) => {
     res.status(400).send(e.message);
   }
 });
-router.get("/news", auth, async (req, res) => {
+router.get("/news", auth.auth, async (req, res) => {
   try {
     const news = await News.find({ publisher: req.writer._id });
     if (!news) {
@@ -89,7 +89,7 @@ router.get("/news", auth, async (req, res) => {
     res.status(400).send(e.message);
   }
 });
-// router.patch("/news/:id", auth, uploads.single("image"), async (req, res) => {
+// router.patch("/news/:id", auth.auth, uploads.single("image"), async (req, res) => {
 //   try {
 //     const news = await News.findOne({
 //       _id: req.params.id,
@@ -111,7 +111,7 @@ router.get("/news", auth, async (req, res) => {
 //     res.status(400).send(e.message);
 //   }
 // });
-router.delete("/news/:id", auth, async (req, res) => {
+router.delete("/news/:id", auth.auth, async (req, res) => {
   const news = await News.findOneAndDelete({
     _id: req.params.id,
     publisher: req.writer._id,
@@ -135,7 +135,7 @@ router.get("/timeline", async (req, res) => {
     res.status(401).send("401" + e);
   }
 });
-router.get("/t", auth, (req, res) => {
+router.get("/t", auth.auth, (req, res) => {
   try {
     res.status(200).send("hellow");
   } catch (e) {
