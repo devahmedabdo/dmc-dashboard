@@ -39,6 +39,13 @@ router.get("/admins", auth.admin([]), async (req, res) => {
     res.status(400).send(e);
   }
 });
+router.get("/test", async (req, res) => {
+  try {
+    res.send("fuck");
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
 router.post("/login", async (req, res) => {
   try {
     const admin = await Admin.findByCredentials(
