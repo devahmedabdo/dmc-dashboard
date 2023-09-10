@@ -46,6 +46,7 @@ const adminSchema = mongoose.Schema({
 
 adminSchema.pre("save", async function () {
   const admin = this;
+  console.log(req.body);
   if (admin.isModified("password")) {
     admin.password = await bcryptjs.hash(admin.password, 8);
   }

@@ -3,9 +3,10 @@ const router = express.Router();
 
 const Admin = require("../models/admin");
 const auth = require("../middelware/auth");
+const Member = require("../models/member");
 
-// admin
-router.post("/admin", async (req, res) => {
+// add admin should be an administrator
+router.post("/admin", auth.admin(["administrator"]), async (req, res) => {
   try {
     const admin = await new Admin(req.body);
     await admin.save();
@@ -14,8 +15,102 @@ router.post("/admin", async (req, res) => {
     res.status(400).send(e);
   }
 });
+// update admin
+router.patch("/admin/:id", auth.admin([]), async (req, res) => {
+  try {
+    const admin = await Admin.findOne({
+      _id: req.params.id,
+    });
+    if (!admin) {
+      return res.status(404).send(`admin dosn't exist`);
+    }
 
-router.get("/admins", auth.admin([]), async (req, res) => {
+    // check who try to update same admin or administrator ?
+    if (
+      req.admin._id.toString() != admin._id.toString() &&
+      req.admin.role != "administrator"
+    ) {
+      return res
+        .status(403)
+        .send("you are not the same admin or administrator");
+    }
+    const updates = Object.keys(req.body);
+    updates.forEach((e) => {
+      admin[e] = req.body[e];
+    });
+    await admin.save();
+    res.status(201).send(admin);
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
+// get admin
+router.get("/admin/:id", auth.admin([]), async (req, res) => {
+  try {
+    const admin = await Admin.findOne({
+      _id: req.params.id,
+    });
+    if (!admin) {
+      return res.status(404).send(`admin dosn't exist`);
+    }
+    // check who try to update same admin or administrator ?
+    if (
+      req.admin._id.toString() != admin._id.toString() &&
+      req.admin.role != "administrator"
+    ) {
+      return res
+        .status(403)
+        .send("you are not the same admin or administrator");
+    }
+
+    res.status(201).send(admin);
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
+// delete admin
+router.delete("/admin/:id", auth.admin(["administrator"]), async (req, res) => {
+  try {
+    const admin = await Admin.findOneAndDelete({
+      _id: req.params.id,
+    });
+    if (!admin) {
+      return res.status(404).send(`admin dosn't exist`);
+    }
+
+    res.status(200).send(admin);
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
+// end admin sessions
+router.delete("/admin/session/:id", auth.admin([]), async (req, res) => {
+  try {
+    const admin = await Admin.findOne({
+      _id: req.params.id,
+    });
+    if (!admin) {
+      return res.status(404).send(`admin dosn't exist`);
+    }
+
+    // check who try to update same admin or administrator ?
+    if (
+      req.admin._id.toString() != admin._id.toString() &&
+      req.admin.role != "administrator"
+    ) {
+      return res
+        .status(403)
+        .send("you are not the same admin or administrator");
+    }
+    admin.tokens = [];
+    await admin.save();
+    res.status(200).send();
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
+// get all admins
+router.get("/admins", auth.admin(["administrator"]), async (req, res) => {
   try {
     const page = +req.query.page || 0;
     const limit = +process.env.LIMIT;
@@ -39,13 +134,7 @@ router.get("/admins", auth.admin([]), async (req, res) => {
     res.status(400).send(e);
   }
 });
-router.get("/test", async (req, res) => {
-  try {
-    res.send("fuck");
-  } catch (e) {
-    res.status(400).send(e);
-  }
-});
+// admin login
 router.post("/login", async (req, res) => {
   try {
     const admin = await Admin.findByCredentials(
@@ -60,65 +149,107 @@ router.post("/login", async (req, res) => {
     res.status(401).send(e.message);
   }
 });
-router.patch("/writer", auth.auth, async (req, res) => {
+// admin logout
+router.delete("/logout", auth.admin([]), async (req, res) => {
   try {
-    const updates = Object.keys(req.body);
-    updates.forEach((e) => {
-      req.writer[e] = req.body[e];
-    });
-    // if (req.file) {
-    //   req.writer.avatar = req.file.buffer;
-    // }
-    await req.writer.save();
-    console.log(req.writer);
-    res.status(200).send(req.writer);
-  } catch (e) {
-    res.status(400).send(e.message);
-  }
-});
-router.get("/writer", auth.auth, async (req, res) => {
-  try {
-    await req.writer.populate("news");
-    res.status(200).send({ profile: req.writer, news: req.writer.news });
-  } catch (e) {
-    res.status(400).send(e.message);
-  }
-});
-router.post("/email", async (req, res) => {
-  try {
-    const email = await Writer.findOne({ email: req.body.email });
-    // console.log(req.body);
-    if (!email) return res.status(200).send(false);
-    res.status(200).send(true);
-  } catch (e) {
-    res.status(400).send(e.message);
-  }
-});
-router.delete("/writer", auth.auth, async (req, res) => {
-  try {
-    await req.writer.remove();
-  } catch (e) {
-    res.status(400).send(e.message);
-  }
-});
-router.delete("/logout", auth.auth, async (req, res) => {
-  try {
-    req.writer.tokens = req.writer.tokens.filter((ele) => {
+    req.admin.tokens = req.writer.tokens.filter((ele) => {
       return ele != req.token;
     });
-    await req.writer.save();
+    await req.admin.save();
     res.status(200).send();
   } catch (e) {
     res.status(500).send(e);
   }
 });
-router.delete("/logoutAll", auth.auth, async (req, res) => {
+// admin change Password
+router.post("/admin/password/:id", auth.admin([]), async (req, res) => {
   try {
-    req.writer.tokens = [];
-    await req.writer.save();
-    res.status(200).send("Signed out from all devices");
+    const admin = await Admin.findOne({
+      _id: req.params.id,
+    });
+    if (!admin) {
+      return res.status(404).send(`admin dosn't exist`);
+    }
+    // check who try to update same admin or administrator ?
+    if (
+      req.admin._id.toString() != admin._id.toString() &&
+      req.admin.role != "administrator"
+    ) {
+      return res
+        .status(403)
+        .send("you are not the same admin or administrator");
+    }
+    // if (
+    //   req.body.password == req.body.confirmPassword &&
+    //   req.body.oldPassword == req.admin.password
+    // ) {
+    // }
+    console.log({
+      old_password: req.body.oldPassword,
+      new_password: req.body.newPassword,
+      old_password: req.body.confirmNewPassword,
+      current_password: req.admin.password,
+    });
+    // admin.password = req.b
+    admin.save();
+    res.status(201).send(admin);
   } catch (e) {
-    res.status(500).send(e);
+    res.status(400).send(e);
+  }
+});
+// members //////////////////////////////////////////////////////////////////////////////
+// modify member
+router.patch(
+  "/admin/member/:id",
+  auth.admin(["administrator"]),
+  async (req, res) => {
+    try {
+      console.log("asfdf  ");
+      const member = await Member.findOne({
+        _id: req.params.id,
+      });
+      if (!member) {
+        return res.status(404).send(`Member dosn't exist`);
+      }
+      const updates = Object.keys(req.body);
+      updates.forEach((e) => {
+        req.member[e] = req.body[e];
+      });
+      await member.save();
+      res.status(201).send(member);
+    } catch (e) {
+      res.status(400).send(e);
+    }
+  }
+);
+router.delete(
+  "/admin/member/:id",
+  auth.admin(["administrator"]),
+  async (req, res) => {
+    try {
+      const member = await Member.findOne({
+        _id: req.params.id,
+      });
+      if (!member) {
+        return res.status(404).send(`member dosn't exist`);
+      }
+      const updates = Object.keys(req.body);
+      updates.forEach((e) => {
+        req.member[e] = req.body[e];
+      });
+      await member.save();
+      res.status(201).send(member);
+    } catch (e) {
+      res.status(400).send(e);
+    }
+  }
+);
+
+router.get("/test", async (req, res) => {
+  try {
+    res.send("fuck");
+  } catch (e) {
+    res.status(400).send(e);
   }
 });
 

@@ -1,12 +1,12 @@
 {
   "name": "dmc-dashboard",
   "version": "1.0.0",
-  "main": "src/index.js",
+  "main": "index.js",
   "engines": {
     "node": "18.x"
   },
   "scripts": {
-    "start": "node src/index.js",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
