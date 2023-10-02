@@ -4,12 +4,15 @@ const router = express.Router();
 const Admin = require("../models/admin");
 const auth = require("../middelware/auth");
 const Member = require("../models/member");
+const jwt = require("jsonwebtoken");
 
 // add admin should be an administrator
 router.post("/admin", auth.admin(["administrator"]), async (req, res) => {
   try {
     const admin = await new Admin(req.body);
+    console.log(admin);
     await admin.save();
+    console.log("no");
     res.status(201).send(admin);
   } catch (e) {
     res.status(400).send(e);
@@ -36,6 +39,9 @@ router.patch("/admin/:id", auth.admin([]), async (req, res) => {
     }
     const updates = Object.keys(req.body);
     updates.forEach((e) => {
+      if (req.admin.role != "administrator" && admin[e] == "role") {
+        return;
+      }
       admin[e] = req.body[e];
     });
     await admin.save();
@@ -62,7 +68,6 @@ router.get("/admin/:id", auth.admin([]), async (req, res) => {
         .status(403)
         .send("you are not the same admin or administrator");
     }
-
     res.status(201).send(admin);
   } catch (e) {
     res.status(400).send(e);
@@ -83,32 +88,26 @@ router.delete("/admin/:id", auth.admin(["administrator"]), async (req, res) => {
     res.status(400).send(e);
   }
 });
-// end admin sessions
-router.delete("/admin/session/:id", auth.admin([]), async (req, res) => {
-  try {
-    const admin = await Admin.findOne({
-      _id: req.params.id,
-    });
-    if (!admin) {
-      return res.status(404).send(`admin dosn't exist`);
+// end admin sessions (logout)
+router.delete(
+  "/admin/sessions/:id",
+  auth.admin(["administrator"]),
+  async (req, res) => {
+    try {
+      const admin = await Admin.findOne({
+        _id: req.params.id,
+      });
+      if (!admin) {
+        return res.status(404).send(`admin dosn't exist`);
+      }
+      admin.tokens = [];
+      await admin.save();
+      res.status(200).send();
+    } catch (e) {
+      res.status(400).send(e);
     }
-
-    // check who try to update same admin or administrator ?
-    if (
-      req.admin._id.toString() != admin._id.toString() &&
-      req.admin.role != "administrator"
-    ) {
-      return res
-        .status(403)
-        .send("you are not the same admin or administrator");
-    }
-    admin.tokens = [];
-    await admin.save();
-    res.status(200).send();
-  } catch (e) {
-    res.status(400).send(e);
   }
-});
+);
 // get all admins
 router.get("/admins", auth.admin(["administrator"]), async (req, res) => {
   try {
@@ -124,7 +123,7 @@ router.get("/admins", auth.admin(["administrator"]), async (req, res) => {
       },
     ]);
 
-    res.send({
+    res.status(200).send({
       page,
       limit,
       total: admins[0].total[0].count,
@@ -135,24 +134,24 @@ router.get("/admins", auth.admin(["administrator"]), async (req, res) => {
   }
 });
 // admin login
-router.post("/login", async (req, res) => {
+router.post("/admin/login", async (req, res) => {
   try {
     const admin = await Admin.findByCredentials(
       req.body.email,
       req.body.password
     );
-    console.log(admin);
     const token = await admin.generateToken();
+    console.log(token);
 
-    res.send({ admin, token });
+    res.status(200).send({ admin, token });
   } catch (e) {
     res.status(401).send(e.message);
   }
 });
 // admin logout
-router.delete("/logout", auth.admin([]), async (req, res) => {
+router.delete("/admin/logout", auth.admin([]), async (req, res) => {
   try {
-    req.admin.tokens = req.writer.tokens.filter((ele) => {
+    req.admin.tokens = req.admin.tokens.filter((ele) => {
       return ele != req.token;
     });
     await req.admin.save();
@@ -161,50 +160,59 @@ router.delete("/logout", auth.admin([]), async (req, res) => {
     res.status(500).send(e);
   }
 });
-// admin change Password
-router.post("/admin/password/:id", auth.admin([]), async (req, res) => {
+
+// request admin reset Password
+router.post("/admin/reset-password", async (req, res) => {
+  // need email
   try {
     const admin = await Admin.findOne({
-      _id: req.params.id,
+      email: req.body.email,
     });
     if (!admin) {
       return res.status(404).send(`admin dosn't exist`);
     }
-    // check who try to update same admin or administrator ?
-    if (
-      req.admin._id.toString() != admin._id.toString() &&
-      req.admin.role != "administrator"
-    ) {
-      return res
-        .status(403)
-        .send("you are not the same admin or administrator");
+    // if admin
+    const token = await admin.generateToken();
+
+    // send this token to email via function TODO:
+    res.status(200).send(token);
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
+// admin change Password
+router.post("/admin/change-password", async (req, res) => {
+  // need new password and confirm it and token
+
+  try {
+    const token = req.body.token;
+
+    console.log(token);
+    const decode = jwt.verify(token, process.env.JWT_SECRET);
+    const admin = await Admin.findOne({ _id: decode._id, tokens: token });
+    if (!admin) {
+      return res.status(404).send(`admin dosn't exist`);
     }
-    // if (
-    //   req.body.password == req.body.confirmPassword &&
-    //   req.body.oldPassword == req.admin.password
-    // ) {
-    // }
-    console.log({
-      old_password: req.body.oldPassword,
-      new_password: req.body.newPassword,
-      old_password: req.body.confirmNewPassword,
-      current_password: req.admin.password,
-    });
-    // admin.password = req.b
-    admin.save();
+    if (req.body.newPassword != req.body.confirmNewPassword) {
+      return res.status(422).send(`new passwords dosn't match`);
+    }
+    admin.password = req.body.newPassword;
+    console.log(admin);
+
+    await admin.save();
     res.status(201).send(admin);
   } catch (e) {
     res.status(400).send(e);
   }
 });
-// members //////////////////////////////////////////////////////////////////////////////
-// modify member
+
+// members //////
+// modify  member
 router.patch(
   "/admin/member/:id",
   auth.admin(["administrator"]),
   async (req, res) => {
     try {
-      console.log("asfdf  ");
       const member = await Member.findOne({
         _id: req.params.id,
       });
@@ -213,7 +221,7 @@ router.patch(
       }
       const updates = Object.keys(req.body);
       updates.forEach((e) => {
-        req.member[e] = req.body[e];
+        member[e] = req.body[e];
       });
       await member.save();
       res.status(201).send(member);
@@ -238,7 +246,7 @@ router.delete(
         req.member[e] = req.body[e];
       });
       await member.save();
-      res.status(201).send(member);
+      res.status(200).send();
     } catch (e) {
       res.status(400).send(e);
     }
@@ -247,6 +255,7 @@ router.delete(
 
 router.get("/test", async (req, res) => {
   try {
+    await console.log("asd");
     res.send("fuck");
   } catch (e) {
     res.status(400).send(e);

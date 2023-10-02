@@ -46,7 +46,6 @@ const adminSchema = mongoose.Schema({
 
 adminSchema.pre("save", async function () {
   const admin = this;
-  console.log(req.body);
   if (admin.isModified("password")) {
     admin.password = await bcryptjs.hash(admin.password, 8);
   }
@@ -64,7 +63,7 @@ adminSchema.statics.findByCredentials = async function (email, password) {
 };
 adminSchema.methods.generateToken = async function () {
   const admin = this;
-  console.log("admin : ", admin);
+  // console.log("admin : ", admin);
   const token = jwt.sign({ _id: admin._id.toString() }, process.env.JWT_SECRET);
   admin.tokens = admin.tokens.concat(token);
   await admin.save();

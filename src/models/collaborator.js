@@ -13,22 +13,6 @@ const collaboratorSchema = mongoose.Schema(
       required: true,
       trim: true,
     },
-
-    // image1: {
-    //   type: Buffer,
-    // },
-    // image2: {
-    //   type: Buffer,
-    // },
-    // image3: {
-    //   type: Buffer,
-    // },
-    // image4: {
-    //   type: Buffer,
-    // },
-    // image5: {
-    //   type: Buffer,
-    // },
   }
   // { timestamps: true }
 );

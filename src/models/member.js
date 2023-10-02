@@ -85,6 +85,15 @@ const memberSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+  status: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
+  card: {
+    type: Boolean,
+    required: true,
+  },
   tokens: [],
 });
 
@@ -93,6 +102,7 @@ memberSchema.pre("save", async function () {
   if (member.isModified("password")) {
     member.password = await bcryptjs.hash(member.password, 8);
   }
+  member.status = false;
 });
 memberSchema.statics.findByCredentials = async function (email, password) {
   const member = await Member.findOne({ email });
