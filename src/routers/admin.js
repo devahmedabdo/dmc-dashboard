@@ -111,14 +111,21 @@ router.delete(
 // get all admins
 router.get("/admins", auth.admin(["administrator"]), async (req, res) => {
   try {
-    const page = +req.query.page || 0;
+    const page = +req.query.page || 1;
     const limit = +process.env.LIMIT;
+    const skip = (page - 1) * limit;
 
     const admins = await Admin.aggregate([
       {
+        $match: {
+          card: true,
+          status: true,
+        },
+      },
+      {
         $facet: {
-          data: [{ $match: {} }, { $skip: page * limit }, { $limit: limit }],
-          total: [{ $count: "count" }],
+          data: [{ $skip: skip }, { $limit: limit }],
+          count: [{ $count: "total" }],
         },
       },
     ]);
@@ -126,7 +133,7 @@ router.get("/admins", auth.admin(["administrator"]), async (req, res) => {
     res.status(200).send({
       page,
       limit,
-      total: admins[0].total[0].count,
+      total: admins[0].count[0].total,
       admins: admins[0].data,
     });
   } catch (e) {

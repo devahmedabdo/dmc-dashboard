@@ -8,7 +8,7 @@ const collaboratorSchema = mongoose.Schema(
       trim: true,
       unique: true,
     },
-    special: {
+    specialist: {
       type: String,
       required: true,
       trim: true,

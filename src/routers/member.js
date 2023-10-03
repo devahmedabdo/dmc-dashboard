@@ -57,12 +57,12 @@ router.delete("/member/:id", auth.member, async (req, res) => {
     res.status(400).send(e);
   }
 });
-// get all members
+// get all members this for admin
 router.get("/members", auth.admin(["administrator"]), async (req, res) => {
   try {
     const page = +req.query.page || 0;
     const limit = +process.env.LIMIT;
-    const admins = await Member.aggregate([
+    const members = await Member.aggregate([
       {
         $facet: {
           data: [{ $match: {} }, { $skip: page * limit }, { $limit: limit }],
@@ -74,8 +74,8 @@ router.get("/members", auth.admin(["administrator"]), async (req, res) => {
     res.send({
       page,
       limit,
-      total: admins[0].total[0].count,
-      admins: admins[0].data,
+      total: members[0].total[0].count,
+      members: members[0].data,
     });
   } catch (e) {
     res.status(400).send(e);
@@ -84,31 +84,29 @@ router.get("/members", auth.admin(["administrator"]), async (req, res) => {
 // get all members card
 router.get("/members-card", async (req, res) => {
   try {
-    const page = +req.query.page || 0;
+    const page = +req.query.page || 1;
     const limit = +process.env.LIMIT;
-    const admins = await Member.aggregate([
+    const skip = (page - 1) * limit;
+    const members = await Member.aggregate([
+      {
+        $match: {
+          card: true,
+          status: true,
+        },
+      },
       {
         $facet: {
-          data: [{ $match: {} }, { $skip: page * limit }, { $limit: limit }],
-          total: [{ $count: "count" }],
+          data: [{ $skip: skip }, { $limit: limit }],
+          count: [{ $count: "total" }],
         },
       },
     ]);
-    // const admins = await Member.aggregate([
-    //   { $match: {} },
-    //   { $skip: page * limit },
-    //   { $limit: limit },
-    //   { $group: { _id: "$stars", count: { $sum: 1 } } },
-    // ]);
 
-    // res.send({
-    //   admins,
-    // });
     res.send({
       page,
       limit,
-      total: admins[0].total[0].count,
-      admins: admins[0].data,
+      total: members[0].count[0].total,
+      members: members[0].data,
     });
   } catch (e) {
     res.status(400).send(e);

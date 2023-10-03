@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const News = require("../models/news"); // TODO: delete this line
 const Convoy = require("../models/convoy");
 const multer = require("multer");
 const auth = require("../middelware/auth");
