@@ -29,20 +29,17 @@ router.patch(
   // auth.admin(["administrator"]), TODO: uncomment this
   async (req, res) => {
     try {
-      const collaborator = await Collaborator.find({ _id: req.params.id });
+      const collaborator = await Collaborator.findOne({ _id: req.params.id });
       if (!collaborator) {
         return res.status(404).send("no collaborator founded");
       }
       const updates = Object.keys(req.body);
-
       updates.forEach((e) => {
         collaborator[e] = req.body[e];
       });
 
       await collaborator.save();
-      // res.status(200).send(updates);
       res.status(200).send({
-        body: req.body,
         collaborator,
       });
     } catch (e) {

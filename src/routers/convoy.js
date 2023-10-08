@@ -1,147 +1,162 @@
 const express = require("express");
 const router = express.Router();
 const Convoy = require("../models/convoy");
-const multer = require("multer");
+const Member = require("../models/member");
+const { ObjectId } = require("mongodb");
 const auth = require("../middelware/auth");
-const uploads = multer({
-  limits: {
-    fieldSize: 1000000,
-  },
-  fileFilter(req, file, cb) {
-    if (!file.originalname.match(/\.(jpg|png|jpeg|gif|webp)$/i)) {
-      return cb(new Error("Please upload an image"));
+// add convoy
+router.post(
+  "/convoy",
+  // auth.admin(['administrator']),
+  async (req, res) => {
+    try {
+      const convoy = await new Convoy(req.body);
+      console.log(req.body);
+      await convoy.save();
+      res.status(200).send(convoy);
+    } catch (e) {
+      res.status(400).send(e);
     }
-    cb(null, true);
-  },
-});
-// router.post("/add", auth.admin(['administrator']), uploads.single("image"), async (req, res) => {
-router.post("/convoy", uploads.array("photos", 5), async (req, res) => {
-  try {
-    const convoy = await new Convoy(req.body);
-    if (req.files.length > 0) {
-      if (req.files.length !== 5) {
-        return res.status(403).send({ photosCount: true });
-      }
-      req.files.forEach((photo) => {
-        convoy.photos.push(photo.buffer);
-      });
-    }
-    await convoy.save();
-    res.status(200).send(req.files);
-  } catch (e) {
-    res.status(400).send(e);
   }
-});
-router.post("/adds", uploads.array("photos", 5), async (req, res) => {
-  try {
-    // const convoy = await new Convoy(req.body);
-    // await convoy.save();console.log(req);
-    res.status(200).send(req.files);
-  } catch (e) {
-    res.status(400).send(e.message);
-  }
-});
+);
+
 router.get("/convoys", async (req, res) => {
   try {
     let convoys = await Convoy.find({});
     for (let i = 0; i < convoys.length; i++) {
-      await convoys[i].populate("collaborators");
-      await convoys[i].populate("forwards.doctor");
+      // await convoys[i].populate("collaborators");
+      // await convoys[i].populate("forwards.doctor");
     }
     res.status(200).send(convoys);
   } catch (e) {
     res.status(401).send("401" + e);
   }
 });
-router.patch(
-  "/replies/:id",
-  auth.admin(["administrator"]),
-  uploads.single("image"),
-  async (req, res) => {
-    try {
-      const mainNews = await News.find({});
-      // publisher: req.writer._id,
-
-      if (!mainNews) {
-        return res.status(200).send("no main news");
-      }
-      const branchNews = await new News(req.body);
-      // branchNews.publisher = req.writer._id;
-      // news.image = req.file.buffer;
-      // mainNews.replies.push(branchNews);
-      console.log(mainNews);
-      // await mainNews.save();
-      res.status(200).send(mainNews);
-    } catch (e) {
-      res.status(400).send(e.message);
-    }
-  }
-);
-
-router.get("/news/:id", auth.admin(["administrator"]), async (req, res) => {
+// get convoy details
+router.get("/convoy/:id", async (req, res) => {
   try {
-    const news = await News.findOne({
-      _id: req.params.id,
-      publisher: req.writer._id,
+    const id = req.params.id;
+    const limit = +process.env.LIMIT;
+
+    const convoy = await Convoy.findOne({
+      _id: id,
     });
-    if (!news) {
-      return res.status(404).send("No News found to for this id");
-    }
-    await news.populate("publisher");
-    res.status(200).send({ news, publisher: news.publisher.name });
-  } catch (e) {
-    res.status(400).send(e.message);
-  }
-});
-router.get("/news", auth.admin(["administrator"]), async (req, res) => {
-  try {
-    const news = await News.find({ publisher: req.writer._id });
-    if (!news) {
-      return res.status(404).send("No News found for you");
-    }
-    res.status(200).send({ news, publisher: req.writer.name });
-  } catch (e) {
-    res.status(400).send(e.message);
-  }
-});
-// router.patch("/news/:id", auth.auth, uploads.single("image"), async (req, res) => {
-//   try {
-//     const news = await News.findOne({
-//       _id: req.params.id,
-//       publisher: req.writer._id,
-//     });
-//     if (!news) {
-//       return res.status(404).send("No News found to edit");
-//     }
-//     const updates = Object.keys(req.body);
-//     updates.forEach((e) => {
-//       news[e] = req.body[e];
-//     });
-//     if (req.file) {
-//       news.image = req.file.buffer;
-//     }
-//     await news.save();
-//     res.status(200).send(news);
-//   } catch (e) {
-//     res.status(400).send(e.message);
-//   }
-// });
-router.delete("/news/:id", auth.admin(["administrator"]), async (req, res) => {
-  const news = await News.findOneAndDelete({
-    _id: req.params.id,
-    publisher: req.writer._id,
-  });
-  if (!news) {
-    return res.status(404).send("No News found to delete");
-  }
-  res.status(200).send(news);
-});
 
-router.get("/t", auth.admin(["administrator"]), (req, res) => {
-  try {
-    res.status(200).send("hellow");
+    if (!convoy) {
+      return res.status(404).send(`Convoy dosn't exist`);
+    }
+
+    const members = await Member.aggregate([
+      {
+        $match: {
+          card: true,
+          status: true,
+          convoys: { $in: [ObjectId(id)] },
+        },
+      },
+      {
+        $facet: {
+          data: [{ $limit: limit }],
+          count: [{ $count: "total" }],
+        },
+      },
+    ]);
+    members[0].data.forEach((member) => {
+      if (!member.showImg) {
+        member.image = "";
+      }
+    });
+    convoy.members = members;
+    // TODO: Uncomment bellow lines
+    // await convoy.populate("collaborators");
+    // await convoy.populate("forwards.doctor");
+    res.status(200).send(convoy);
   } catch (e) {
     res.status(401).send("401" + e);
   }
 });
+// get convoy member pagination
+router.get("/convoy/members-card/:id", async (req, res) => {
+  try {
+    let id = req.params.id;
+    const page = +req.query.page || 1;
+    const limit = +process.env.LIMIT;
+    const skip = (page - 1) * limit;
+
+    const members = await Member.aggregate([
+      {
+        $match: {
+          card: true,
+          status: true,
+          convoys: { $in: [ObjectId(id)] },
+        },
+      },
+      {
+        $facet: {
+          data: [{ $skip: skip }, { $limit: limit }],
+          count: [{ $count: "total" }],
+        },
+      },
+    ]);
+
+    members[0].data.forEach((member) => {
+      if (!member.showImg) {
+        member.image = "";
+      }
+    });
+
+    res.send({
+      page,
+      limit,
+      total: members[0].count[0].total,
+      members: members[0].data,
+    });
+  } catch (e) {
+    console.log(e);
+    res.status(400).send(e);
+  }
+});
+// delete convoy
+router.delete(
+  "/convoy/:id",
+  // auth.admin(['administrator']),
+  async (req, res) => {
+    try {
+      const convoy = await Convoy.findOneAndDelete({
+        _id: req.params.id,
+      });
+      if (!convoy) {
+        return res.status(404).send(`convoy dosn't exist`);
+      }
+      res.status(200).send(convoy);
+    } catch (e) {
+      res.status(400).send(e);
+    }
+  }
+);
+// update convoy
+router.patch(
+  "/convoy/:id",
+  // auth.admin(['administrator']),
+
+  async (req, res) => {
+    try {
+      const convoy = await Convoy.findOne({
+        _id: req.params.id,
+      });
+      if (!convoy) {
+        return res.status(404).send(`convoy dosn't exist`);
+      }
+      const updates = Object.keys(req.body);
+      updates.forEach((e) => {
+        convoy[e] = req.body[e];
+      });
+
+      await convoy.save();
+      res.status(201).send(convoy);
+    } catch (e) {
+      res.status(400).send(e);
+    }
+  }
+);
 module.exports = router;

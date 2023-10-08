@@ -16,7 +16,7 @@ router.post("/member", async (req, res) => {
   }
 });
 // update member
-router.patch("/member/:id", auth.member, async (req, res) => {
+router.patch("/member", auth.member, async (req, res) => {
   try {
     const updates = Object.keys(req.body);
     updates.forEach((e) => {
@@ -30,27 +30,23 @@ router.patch("/member/:id", auth.member, async (req, res) => {
   }
 });
 // get member
-router.get("/member/:id", auth.member, async (req, res) => {
+router.get("/member", auth.member, async (req, res) => {
   try {
-    const member = await Admin.findOne({
-      _id: req.params.id,
-    });
-    if (!member) {
-      return res.status(404).send(`Member dosn't exist`);
-    }
+    const member = req.member;
+    await member.populate("convoys");
     res.status(200).send(member);
   } catch (e) {
     res.status(400).send(e);
   }
 });
 // delete member
-router.delete("/member/:id", auth.member, async (req, res) => {
+router.delete("/member", auth.member, async (req, res) => {
   try {
-    const member = await Admin.findOneAndDelete({
-      _id: req.params.id,
+    const member = await Member.findOneAndDelete({
+      _id: req.member._id,
     });
     if (!member) {
-      return res.status(404).send(`admin dosn't exist`);
+      return res.status(404).send(`Member dosn't exist`);
     }
     res.status(200).send(member);
   } catch (e) {
@@ -101,6 +97,7 @@ router.get("/members-card", async (req, res) => {
         },
       },
     ]);
+    // TODO: hide img for some
 
     res.send({
       page,
@@ -113,9 +110,9 @@ router.get("/members-card", async (req, res) => {
   }
 });
 // member login
-router.post("/login", async (req, res) => {
+router.post("/member/login", async (req, res) => {
   try {
-    const member = await Admin.findByCredentials(
+    const member = await Member.findByCredentials(
       req.body.email,
       req.body.password
     );
@@ -126,7 +123,7 @@ router.post("/login", async (req, res) => {
   }
 });
 // member logout
-router.delete("/logout", auth.member, async (req, res) => {
+router.delete("/member/logout", auth.member, async (req, res) => {
   try {
     req.member.tokens = req.member.tokens.filter((ele) => {
       return ele != req.token;

@@ -94,6 +94,17 @@ const memberSchema = mongoose.Schema({
     type: Boolean,
     required: true,
   },
+  showImg: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
+  convoys: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Convoy",
+    },
+  ],
   tokens: [],
 });
 

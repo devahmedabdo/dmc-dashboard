@@ -19,15 +19,8 @@ const convoySchema = mongoose.Schema(
     },
     numbers: [
       {
-        specialization: {
-          type: String,
-          required: true,
-          trim: true,
-        },
-        total: {
-          type: Number,
-          required: true,
-        },
+        specialization: String,
+        total: Number,
       },
     ],
     forwards: [
@@ -38,10 +31,7 @@ const convoySchema = mongoose.Schema(
           ref: "Collaborator",
           // doctor
         },
-        total: {
-          type: Number,
-          required: true,
-        },
+        total: Number,
       },
     ],
 
@@ -52,10 +42,14 @@ const convoySchema = mongoose.Schema(
         ref: "Collaborator",
       },
     ],
-    photos: {
-      type: Buffer,
-      required: true,
-    },
+    members: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: "Member",
+      },
+    ],
+    photos: [],
 
     // image1: {
     //   type: Buffer,
@@ -76,12 +70,21 @@ const convoySchema = mongoose.Schema(
   // { timestamps: true }
 );
 
-convoySchema.methods.toJSON = function () {
-  const news = this;
-  const newsObject = news.toObject();
-  // delete newsObject.puplisher;
-  return newsObject;
-};
-
+// convoySchema.methods.toJSON = function () {
+//   const convoy = this;
+//   const convoyObject = convoy.toObject();
+//   // delete newsObject.puplisher;
+//   return convoyObject;
+// };
+// convoySchema.virtual("Member", {
+//   ref: "Member",
+//   localField: "_id",
+//   foreignField: "convoys",
+// });
+convoySchema.virtual("convoys", {
+  ref: "Member",
+  localField: "_id",
+  foreignField: "convoys",
+});
 const Convoy = mongoose.model("Convoy", convoySchema);
 module.exports = Convoy;
