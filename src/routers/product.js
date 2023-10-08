@@ -5,8 +5,23 @@ const auth = require("../middelware/auth");
 // all Products
 router.get("/products", async (req, res) => {
   try {
-    const products = await Product.find({});
-    res.status(200).send(products);
+    const page = +req.query.page || 0;
+    const limit = +process.env.LIMIT;
+    const products = await Product.aggregate([
+      {
+        $facet: {
+          data: [{ $match: {} }, { $skip: page * limit }, { $limit: limit }],
+          total: [{ $count: "count" }],
+        },
+      },
+    ]);
+
+    res.send({
+      page,
+      limit,
+      total: products[0].total[0].count || 0,
+      products: products[0].data,
+    });
   } catch (e) {
     res.status(400).send(e.message);
   }
@@ -25,7 +40,7 @@ router.post(
   }
 );
 router.patch(
-  "/collaborator/:id",
+  "/product/:id",
   // auth.admin(["administrator"]), TODO: uncomment this
   async (req, res) => {
     try {
