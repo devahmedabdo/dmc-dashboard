@@ -5,6 +5,7 @@ const adminRouter = require("./src/routers/admin");
 const memberRouter = require("./src/routers/member");
 const collaboratorRouter = require("./src/routers/collaborator");
 const productRouter = require("./src/routers/product");
+const awarenessRouter = require("./src/routers/awareness");
 const convoyRouter = require("./src/routers/convoy");
 const app = express();
 require("dotenv").config();
@@ -22,6 +23,7 @@ app.use(collaboratorRouter);
 app.use(productRouter);
 app.use(convoyRouter);
 app.use(memberRouter);
+app.use(awarenessRouter);
 // app.use(writerRouter);
 // app.use(newsRouter);
 

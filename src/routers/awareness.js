@@ -1,15 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const Product = require("../models/product");
+const Awareness = require("../models/awareness");
 const auth = require("../middelware/auth");
-// all Products
-router.get("/products", async (req, res) => {
+// all awareness
+router.get("/awareness", async (req, res) => {
   try {
-    const page = +req.query.page || 0;
+    const page = +req.query.page || 1;
     const limit = +process.env.LIMIT;
     const skip = (page - 1) * limit;
 
-    const products = await Product.aggregate([
+    const awareness = await Awareness.aggregate([
       {
         $facet: {
           data: [{ $match: {} }, { $skip: skip }, { $limit: limit }],
@@ -21,43 +21,44 @@ router.get("/products", async (req, res) => {
     res.send({
       page,
       limit,
-      total: products[0].total[0]?.count || 0,
-      products: products[0].data,
+      total: awareness[0].total[0]?.count || 0,
+      awareness: awareness[0].data || [],
     });
   } catch (e) {
     res.status(400).send(e.message);
   }
 });
 router.post(
-  "/product",
+  "/awareness",
   // auth.admin(["administrator"]), TODO: uncomment this
   async (req, res) => {
     try {
-      const product = await new Product(req.body);
-      await product.save();
-      res.status(200).send(product);
+      const awareness = await new Awareness(req.body);
+      await awareness.save();
+      res.status(200).send(awareness);
     } catch (e) {
       res.status(400).send(e.message);
     }
   }
 );
 router.patch(
-  "/product/:id",
+  "/awareness/:id",
   // auth.admin(["administrator"]), TODO: uncomment this
   async (req, res) => {
     try {
-      const product = await Product.findOne({ _id: req.params.id });
-      if (!product) {
-        return res.status(404).send("no product founded");
+      const awareness = await Awareness.findOne({ _id: req.params.id });
+      console.log(awareness);
+      if (!awareness) {
+        return res.status(404).send("no awareness founded");
       }
       const updates = Object.keys(req.body);
       updates.forEach((e) => {
-        product[e] = req.body[e];
+        awareness[e] = req.body[e];
       });
 
-      await product.save();
+      await awareness.save();
       res.status(200).send({
-        product,
+        awareness,
       });
     } catch (e) {
       res.status(400).send(e.message);
@@ -65,16 +66,16 @@ router.patch(
   }
 );
 router.delete(
-  "/product/:id",
+  "/awareness/:id",
   // auth.admin(["administrator"]), TODO: uncomment this,
   async (req, res) => {
-    const product = await Product.findOneAndDelete({
+    const awareness = await Awareness.findOneAndDelete({
       _id: req.params.id,
     });
-    if (!product) {
-      return res.status(404).send("no product founded");
+    if (!awareness) {
+      return res.status(404).send("no awareness founded");
     }
-    res.status(200).send(product);
+    res.status(200).send(awareness);
   }
 );
 

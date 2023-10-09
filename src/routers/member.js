@@ -58,10 +58,11 @@ router.get("/members", auth.admin(["administrator"]), async (req, res) => {
   try {
     const page = +req.query.page || 0;
     const limit = +process.env.LIMIT;
+    const skip = (page - 1) * limit;
     const members = await Member.aggregate([
       {
         $facet: {
-          data: [{ $match: {} }, { $skip: page * limit }, { $limit: limit }],
+          data: [{ $match: {} }, { $skip: skip }, { $limit: limit }],
           total: [{ $count: "count" }],
         },
       },
