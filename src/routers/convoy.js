@@ -23,6 +23,7 @@ router.post(
 router.get("/convoys", async (req, res) => {
   try {
     let convoys = await Convoy.find({});
+    // convoys.populate();
     for (let i = 0; i < convoys.length; i++) {
       // await convoys[i].populate("collaborators");
       // await convoys[i].populate("forwards.doctor");

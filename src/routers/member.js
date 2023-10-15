@@ -56,7 +56,7 @@ router.delete("/member", auth.member, async (req, res) => {
 // get all members this for admin
 router.get("/members", auth.admin(["administrator"]), async (req, res) => {
   try {
-    const page = +req.query.page || 0;
+    const page = +req.query.page || 1;
     const limit = +process.env.LIMIT;
     const skip = (page - 1) * limit;
     const members = await Member.aggregate([

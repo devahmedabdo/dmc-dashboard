@@ -16,10 +16,12 @@ router.put(
   // auth.admin(["administrator"]), TODO: uncomment this
   async (req, res) => {
     try {
-      const config = await Config.findOne({ _id: req.params.id });
+      const config = await Config.findOne();
       console.log(config);
       if (!config) {
-        return res.status(404).send("no config founded");
+        config = new Config(req.body);
+        await config.save();
+        return;
       }
       const updates = Object.keys(req.body);
       updates.forEach((e) => {

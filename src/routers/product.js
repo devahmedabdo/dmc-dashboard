@@ -5,7 +5,7 @@ const auth = require("../middelware/auth");
 // all Products
 router.get("/products", async (req, res) => {
   try {
-    const page = +req.query.page || 0;
+    const page = +req.query.page || 1;
     const limit = +process.env.LIMIT;
     const skip = (page - 1) * limit;
 
