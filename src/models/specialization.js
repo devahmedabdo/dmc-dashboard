@@ -1,14 +1,14 @@
 const mongoose = require("mongoose");
 
-const awarenessSchema = mongoose.Schema(
+const specializationSchema = mongoose.Schema(
   {
-    subject: {
+    name: {
       type: String,
       required: true,
       trim: true,
       unique: true,
     },
-    description: {
+    icon: {
       type: String,
       required: true,
       trim: true,
@@ -17,5 +17,5 @@ const awarenessSchema = mongoose.Schema(
   // { timestamps: true }
 );
 
-const Awareness = mongoose.model("Awareness", awarenessSchema);
-module.exports = Awareness;
+const Specialization = mongoose.model("Specialization", specializationSchema);
+module.exports = Specialization;

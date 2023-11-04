@@ -8,6 +8,10 @@ const productRouter = require("./src/routers/product");
 const orderRouter = require("./src/routers/order");
 const awarenessRouter = require("./src/routers/awareness");
 const convoyRouter = require("./src/routers/convoy");
+const configRouter = require("./src/routers/config");
+const roleRouter = require("./src/routers/role");
+const facebookRouter = require("./src/routers/facebook");
+const specializationRouter = require("./src/routers/specialization");
 const app = express();
 require("dotenv").config();
 const port = process.env.PORT;
@@ -26,7 +30,10 @@ app.use(convoyRouter);
 app.use(memberRouter);
 app.use(awarenessRouter);
 app.use(orderRouter);
-// app.use(newsRouter);
+app.use(configRouter);
+app.use(roleRouter);
+app.use(facebookRouter);
+app.use(specializationRouter);
 
 app.listen(port, () => {
   console.log("Server is running " + port);

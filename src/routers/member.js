@@ -53,31 +53,6 @@ router.delete("/member", auth.member, async (req, res) => {
     res.status(400).send(e);
   }
 });
-// get all members this for admin
-router.get("/members", auth.admin(["administrator"]), async (req, res) => {
-  try {
-    const page = +req.query.page || 1;
-    const limit = +process.env.LIMIT;
-    const skip = (page - 1) * limit;
-    const members = await Member.aggregate([
-      {
-        $facet: {
-          data: [{ $match: {} }, { $skip: skip }, { $limit: limit }],
-          total: [{ $count: "count" }],
-        },
-      },
-    ]);
-
-    res.send({
-      page,
-      limit,
-      total: members[0].total[0].count,
-      members: members[0].data,
-    });
-  } catch (e) {
-    res.status(400).send(e);
-  }
-});
 // get all members card
 router.get("/members-card", async (req, res) => {
   try {
@@ -133,6 +108,51 @@ router.delete("/member/logout", auth.member, async (req, res) => {
     res.status(200).send();
   } catch (e) {
     res.status(500).send(e);
+  }
+});
+
+// request member reset Password
+router.post("/member/reset-password", async (req, res) => {
+  // need email
+  try {
+    const member = await Member.findOne({
+      email: req.body.email,
+    });
+    if (!member) {
+      return res.status(404).send(`member dosn't exist`);
+    }
+    // if member
+    const token = await member.generateToken();
+
+    // send this token to email via function TODO:
+    res.status(200).send(token);
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
+// member change Password
+router.post("/member/change-password/:token", async (req, res) => {
+  // need new password and confirm it and token
+
+  try {
+    const token = req.params.token;
+
+    console.log(token);
+    const decode = jwt.verify(token, process.env.JWT_SECRET);
+    const member = await Member.findOne({ _id: decode._id, tokens: token });
+    if (!member) {
+      return res.status(404).send(`member dosn't exist`);
+    }
+    if (req.body.newPassword != req.body.confirmNewPassword) {
+      return res.status(422).send(`new passwords dosn't match`);
+    }
+    member.password = req.body.newPassword;
+    console.log(member);
+
+    await member.save();
+    res.status(201).send(member);
+  } catch (e) {
+    res.status(400).send(e);
   }
 });
 

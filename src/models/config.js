@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const collaboratorSchema = mongoose.Schema(
+const configSchema = mongoose.Schema(
   {
     visits: {
       type: Number,
@@ -10,5 +10,5 @@ const collaboratorSchema = mongoose.Schema(
   // { timestamps: true }
 );
 
-const Awareness = mongoose.model("Awareness", collaboratorSchema);
-module.exports = Awareness;
+const Config = mongoose.model("Config", configSchema);
+module.exports = Config;

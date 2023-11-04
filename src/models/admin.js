@@ -37,9 +37,8 @@ const adminSchema = mongoose.Schema({
     // },
   },
   role: {
-    type: String,
-    required: true,
-    trim: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Role",
   },
   tokens: [],
 });

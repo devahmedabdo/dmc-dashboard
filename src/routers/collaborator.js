@@ -3,17 +3,23 @@ const router = express.Router();
 const Collaborator = require("../models/collaborator");
 const auth = require("../middelware/auth");
 // all collaborator
-router.get("/collaborator", auth.admin([]), async (req, res) => {
-  try {
-    const collaborators = await Collaborator.find({});
-    res.status(200).send(collaborators);
-  } catch (e) {
-    res.status(400).send(e.message);
+router.get(
+  "/collaborator",
+  auth.admin("collaporator", "manage"),
+  async (req, res) => {
+    try {
+      const collaborators = await Collaborator.find({});
+      await collaborators.populate("specialist");
+      res.status(200).send(collaborators);
+    } catch (e) {
+      res.status(400).send(e.message);
+    }
   }
-});
+);
 router.post(
   "/collaborator",
-  // auth.admin(["administrator"]), TODO: uncomment this
+  auth.admin("collaporator", "add"),
+
   async (req, res) => {
     try {
       const collaborator = await new Collaborator(req.body);
@@ -26,7 +32,8 @@ router.post(
 );
 router.patch(
   "/collaborator/:id",
-  // auth.admin(["administrator"]), TODO: uncomment this
+  auth.admin("collaporator", "manage"),
+
   async (req, res) => {
     try {
       const collaborator = await Collaborator.findOne({ _id: req.params.id });
@@ -49,7 +56,8 @@ router.patch(
 );
 router.delete(
   "/collaborator/:id",
-  // auth.admin(["administrator"]), TODO: uncomment this,
+  auth.admin("collaporator", "delete"),
+
   async (req, res) => {
     const collaborator = await Collaborator.findOneAndDelete({
       _id: req.params.id,

@@ -20,8 +20,8 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.4.4",
     "multer": "^1.4.5-lts.1",
+    "puppeteer": "^21.5.0",
     "validator": "^13.7.0"
   },
-  "devDependencies": {},
   "description": "DMC Dashboard System"
 }

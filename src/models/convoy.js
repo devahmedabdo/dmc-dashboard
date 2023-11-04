@@ -11,6 +11,7 @@ const convoySchema = mongoose.Schema(
       order: {
         type: Number,
         required: true,
+        trim: true,
       },
       date: {
         type: String,
@@ -19,7 +20,12 @@ const convoySchema = mongoose.Schema(
     },
     numbers: [
       {
-        specialization: String,
+        specialization: {
+          type: mongoose.Schema.Types.ObjectId,
+          required: true,
+          ref: "Specialization",
+          // doctor
+        },
         total: Number,
       },
     ],
@@ -81,10 +87,10 @@ const convoySchema = mongoose.Schema(
 //   localField: "_id",
 //   foreignField: "convoys",
 // });
-convoySchema.virtual("convoys", {
-  ref: "Member",
-  localField: "_id",
-  foreignField: "convoys",
-});
+// convoySchema.virtual("convoys", {
+//   ref: "Member",
+//   localField: "_id",
+//   foreignField: "convoys",
+// });
 const Convoy = mongoose.model("Convoy", convoySchema);
 module.exports = Convoy;

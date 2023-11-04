@@ -7,7 +7,8 @@ const auth = require("../middelware/auth");
 // add convoy
 router.post(
   "/convoy",
-  // auth.admin(['administrator']),
+  auth.admin("convoys", "add"),
+
   async (req, res) => {
     try {
       const convoy = await new Convoy(req.body);
@@ -120,7 +121,8 @@ router.get("/convoy/members-card/:id", async (req, res) => {
 // delete convoy
 router.delete(
   "/convoy/:id",
-  // auth.admin(['administrator']),
+  auth.admin("convoys", "delete"),
+
   async (req, res) => {
     try {
       const convoy = await Convoy.findOneAndDelete({
@@ -138,7 +140,7 @@ router.delete(
 // update convoy
 router.patch(
   "/convoy/:id",
-  // auth.admin(['administrator']),
+  auth.admin("convoys", "manage"),
 
   async (req, res) => {
     try {
@@ -160,4 +162,12 @@ router.patch(
     }
   }
 );
+router.get("/select/convoys", async (req, res) => {
+  try {
+    let convoys = await Convoy.find({}, { id: 1, description: 1 });
+    res.status(200).send(convoys);
+  } catch (e) {
+    res.status(401).send("401" + e);
+  }
+});
 module.exports = router;
