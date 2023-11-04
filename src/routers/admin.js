@@ -292,7 +292,7 @@ router.get(
 router.get("/test", async (req, res) => {
   try {
     console.log("asd");
-    res.send(req.query);
+    res.send("Hellow world");
   } catch (e) {
     res.status(400).send(e);
   }
