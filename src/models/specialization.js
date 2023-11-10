@@ -7,6 +7,7 @@ const specializationSchema = mongoose.Schema(
       required: true,
       trim: true,
       unique: true,
+      minLength: 8,
     },
     icon: {
       type: String,

@@ -6,22 +6,16 @@ const auth = require("../middelware/auth");
 const Member = require("../models/member");
 const jwt = require("jsonwebtoken");
 
-// add admin should be an administrator
-router.post(
-  "/admin",
-  //  auth.admin('users','add'),
-  async (req, res) => {
-    try {
-      const admin = await new Admin(req.body);
-      console.log(admin);
-      await admin.save();
-      console.log("no");
-      res.status(201).send(admin);
-    } catch (e) {
-      res.status(400).send(e);
-    }
+// add admin
+router.post("/admin", auth.admin("users", "add"), async (req, res) => {
+  try {
+    const admin = await new Admin(req.body);
+    await admin.save();
+    res.status(201).send(admin);
+  } catch (e) {
+    res.status(400).send(e);
   }
-);
+});
 // update admin
 router.patch("/admin/:id", auth.admin("users", "manage"), async (req, res) => {
   try {
@@ -31,7 +25,6 @@ router.patch("/admin/:id", auth.admin("users", "manage"), async (req, res) => {
     if (!admin) {
       return res.status(404).send(`admin dosn't exist`);
     }
-    await admin.populate("role");
     const updates = Object.keys(req.body);
     updates.forEach((e) => {
       admin[e] = req.body[e];
@@ -163,13 +156,14 @@ router.post("/admin/reset-password", async (req, res) => {
       email: req.body.email,
     });
     if (!admin) {
-      return res.status(404).send(`admin dosn't exist`);
+      return res.status(404).send(req.body);
+      // return res.status(404).send(`admin dosn't exist`);
     }
     // if admin
     const token = await admin.generateToken();
 
     // send this token to email via function TODO:
-    res.status(200).send(token);
+    res.status(200).send({ token: token });
   } catch (e) {
     res.status(400).send(e);
   }
@@ -288,8 +282,7 @@ router.get(
     }
   }
 );
-
-router.get("/test", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     console.log("asd");
     res.send("Hellow world");

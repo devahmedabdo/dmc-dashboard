@@ -26,8 +26,8 @@ router.get("/convoys", async (req, res) => {
     let convoys = await Convoy.find({});
     // convoys.populate();
     for (let i = 0; i < convoys.length; i++) {
-      // await convoys[i].populate("collaborators");
-      // await convoys[i].populate("forwards.doctor");
+      await convoys[i].populate("collaborators");
+      await convoys[i].populate("forwards.doctor");
     }
     res.status(200).send(convoys);
   } catch (e) {

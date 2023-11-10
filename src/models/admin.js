@@ -24,7 +24,7 @@ const adminSchema = mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    minLength: 8,
+    // minLength: 8,
     // validate(value) {
     //   let strongPassword = new RegExp(
     //     "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])"
@@ -52,17 +52,16 @@ adminSchema.pre("save", async function () {
 adminSchema.statics.findByCredentials = async function (email, password) {
   const admin = await Admin.findOne({ email });
   if (!admin) {
-    throw new Error("please check your emailww or password");
+    throw new Error("Email is Wrong");
   }
   const isMatch = await bcryptjs.compare(password, admin.password);
   if (!isMatch) {
-    throw new Error("please check your email or password");
+    throw new Error("Password is Wrong");
   }
   return admin;
 };
 adminSchema.methods.generateToken = async function () {
   const admin = this;
-  // console.log("admin : ", admin);
   const token = jwt.sign({ _id: admin._id.toString() }, process.env.JWT_SECRET);
   admin.tokens = admin.tokens.concat(token);
   await admin.save();
@@ -74,10 +73,5 @@ adminSchema.methods.toJSON = function () {
   delete adminObject.password;
   return adminObject;
 };
-// adminSchema.virtual("news", {
-//   ref: "News",
-//   localField: "_id",
-//   foreignField: "updater",
-// });
 const Admin = mongoose.model("Admin", adminSchema);
 module.exports = Admin;

@@ -90,6 +90,10 @@ const memberSchema = mongoose.Schema({
     required: true,
     default: false,
   },
+  new: {
+    type: Boolean,
+    default: false,
+  },
   card: {
     type: Boolean,
     required: true,
@@ -142,5 +146,6 @@ memberSchema.methods.toJSON = function () {
   delete memberObject.password;
   return memberObject;
 };
+
 const Member = mongoose.model("Member", memberSchema);
 module.exports = Member;

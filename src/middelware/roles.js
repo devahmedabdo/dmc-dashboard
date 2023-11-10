@@ -101,11 +101,28 @@ const roles = {
       },
     },
   },
+  specialization: {
+    title: "التخصصات",
+    permissions: {
+      manage: {
+        id: 117,
+        name: "ادارة",
+      },
+      add: {
+        id: 118,
+        name: "اضافة",
+      },
+      delete: {
+        id: 119,
+        name: "حذف",
+      },
+    },
+  },
   settings: {
     title: "الاعدادات",
     permissions: {
       upgrade: {
-        id: 117,
+        id: 120,
         name: "تحديث",
       },
     },

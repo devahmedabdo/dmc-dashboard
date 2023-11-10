@@ -25,7 +25,7 @@ router.get(
         page,
         limit,
         total: specialization[0].total[0]?.count || 0,
-        specialization: specialization[0].data || [],
+        items: specialization[0].data || [],
       });
     } catch (e) {
       res.status(400).send(e.message);
@@ -42,7 +42,10 @@ router.post(
       await specialization.save();
       res.status(200).send(specialization);
     } catch (e) {
-      res.status(400).send(e.message);
+      if (e.name == "ValidationError") {
+        return res.status(422).send(e.errors);
+      }
+      res.status(400).send(e);
     }
   }
 );

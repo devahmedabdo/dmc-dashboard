@@ -1,35 +1,34 @@
 const mongoose = require("mongoose");
 
-const collaboratorSchema = mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-      unique: true,
-    },
-    specialist: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-  }
-  // { timestamps: true }
-);
-// collaboratorSchema.virtual("doctors", {
-//   ref: "Collaborator",
-//   localField: "_id",
-//   foreignField: "collaborators",
-// });
-// collaboratorSchema.virtual("doctors", {
-//   ref: "Collaborator",
-//   localField: "_id",
-//   foreignField: "forwards",
-// });
-// collaboratorSchema.virtual("forwards", {
-//   ref: "Collaborator",
-//   localField: "_id",
-//   foreignField: "forwards",
-// });
+const collaboratorSchema = mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+    unique: true,
+  },
+  address: {
+    type: String,
+    trim: true,
+  },
+  specialization: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: "Specialization",
+  },
+  personalPhone: {
+    type: String,
+    trim: true,
+  },
+  phone: {
+    type: String,
+    trim: true,
+  },
+  responsible: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Member",
+  },
+});
+
 const Collaborator = mongoose.model("Collaborator", collaboratorSchema);
 module.exports = Collaborator;
