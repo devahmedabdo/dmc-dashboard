@@ -52,8 +52,10 @@ router.post("/remove-bg", async (req, res) => {
       req.body,
       {
         headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Expose-Headers": "*",
           // Add any required headers here, such as API keys or authentication tokens
-          Authorization: config.bgRemoverKey, // Replace with your actual API key
+          "X-Api-Key": config.bgRemoverKey, // Replace with your actual API key
           "Content-Type": "multipart/form-data",
         },
       }
@@ -71,26 +73,16 @@ router.get("/remove-bg-cridits", async (req, res) => {
 
       {
         headers: {
-          "X-Api-Key": "3kL9DkrabWcsGN4VDufiQCV1",
+          "X-Api-Key": config.bgRemoverKey,
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Expose-Headers": "*",
           "Content-Type": "application/json",
           // Add any required headers here, such as API keys or authentication tokens
           // Authorization: config.bgRemoverKey, // Replace with your actual API key
         },
       }
     );
-    // const data = fetch();
-    // fetch("https://api.remove.bg/v1.0/account", {
-    //   method: "GET", // *GET, POST, PUT, DELETE, etc.
-    //   headers: {
-    //     "X-Api-Key": "3kL9DkrabWcsGN4VDufiQCV1",
-    //     "Content-Type": "application/json",
-    //   },
-    // })
-    //   .then((data) => {
-    //   })
-    //   .finally((data) => {
-    //     console.log(data);
-    //   });
+
     res.status(201).send(response);
   } catch (e) {
     res.status(400).send(e);
