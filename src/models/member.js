@@ -56,11 +56,7 @@ const memberSchema = mongoose.Schema({
       trim: true,
     },
   },
-  faculty: {
-    type: String,
-    required: true,
-    trim: true,
-  },
+
   password: {
     type: String,
     required: true,
@@ -117,7 +113,6 @@ memberSchema.pre("save", async function () {
   if (member.isModified("password")) {
     member.password = await bcryptjs.hash(member.password, 8);
   }
-  member.status = false;
 });
 memberSchema.statics.findByCredentials = async function (email, password) {
   const member = await Member.findOne({ email });

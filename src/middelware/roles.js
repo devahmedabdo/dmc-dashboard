@@ -2,16 +2,20 @@ const roles = {
   users: {
     title: "المستخدمين",
     permissions: {
-      manage: {
+      read: {
+        name: "قراءة",
         id: 100,
-        name: "ادارة",
+      },
+      edit: {
+        id: 101,
+        name: "تعديل",
       },
       add: {
-        id: 101,
+        id: 102,
         name: "اضافة",
       },
       delete: {
-        id: 102,
+        id: 103,
         name: "حذف",
       },
     },
@@ -19,16 +23,16 @@ const roles = {
   roles: {
     title: "الصلاحيات",
     permissions: {
-      manage: {
-        id: 103,
-        name: "ادارة",
-      },
       add: {
         id: 104,
-        name: "اضافة",
+        name: "ادارة",
       },
       delete: {
         id: 105,
+        name: "اضافة",
+      },
+      manage: {
+        id: 106,
         name: "حذف",
       },
     },

@@ -8,10 +8,14 @@ const auth = require("../middelware/auth");
 router.post("/member", async (req, res) => {
   try {
     req.body.status = false;
+    req.body.new = true;
     const member = await new Member(req.body);
     await member.save();
     res.status(201).send(member);
   } catch (e) {
+    if (e.name == "ValidationError") {
+      return res.status(422).send(e.errors);
+    }
     res.status(400).send(e);
   }
 });
@@ -26,6 +30,9 @@ router.patch("/member", auth.member, async (req, res) => {
     await req.member.save();
     res.status(201).send(req.member);
   } catch (e) {
+    if (e.name == "ValidationError") {
+      return res.status(422).send(e.errors);
+    }
     res.status(400).send(e);
   }
 });
@@ -119,7 +126,7 @@ router.post("/member/reset-password", async (req, res) => {
       email: req.body.email,
     });
     if (!member) {
-      return res.status(404).send(`member dosn't exist`);
+      return res.status(422).send(`member dosn't exist`);
     }
     // if member
     const token = await member.generateToken();
@@ -133,11 +140,8 @@ router.post("/member/reset-password", async (req, res) => {
 // member change Password
 router.post("/member/change-password/:token", async (req, res) => {
   // need new password and confirm it and token
-
   try {
     const token = req.params.token;
-
-    console.log(token);
     const decode = jwt.verify(token, process.env.JWT_SECRET);
     const member = await Member.findOne({ _id: decode._id, tokens: token });
     if (!member) {
@@ -147,8 +151,6 @@ router.post("/member/change-password/:token", async (req, res) => {
       return res.status(422).send(`new passwords dosn't match`);
     }
     member.password = req.body.newPassword;
-    console.log(member);
-
     await member.save();
     res.status(201).send(member);
   } catch (e) {

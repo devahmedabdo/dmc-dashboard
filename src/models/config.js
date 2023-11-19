@@ -6,6 +6,10 @@ const configSchema = mongoose.Schema(
       type: Number,
     },
     links: [],
+    bgRemoverKey: {
+      type: String,
+      trim: true,
+    },
   }
   // { timestamps: true }
 );

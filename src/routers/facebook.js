@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const puppeteer = require("puppeteer");
+const axios = require("axios");
 
 router.get("/post", async (req, res) => {
   try {
@@ -26,6 +27,73 @@ router.get("/post", async (req, res) => {
     return res.send(images || []);
   } catch (error) {
     return res.send(error);
+  }
+});
+// router.get("/post", async (req, res) => {
+//   try {
+//     let images = [];
+//     for (let i = 1; i <= 30; i++) {
+//       images.push(`convoys (${i})`);
+//     }
+//     setTimeout(() => {
+//       return res.send(images || []);
+//     }, 2000);
+//   } catch (error) {
+//     return res.send(error);
+//   }
+// });
+const Config = require("../models/config");
+
+router.post("/remove-bg", async (req, res) => {
+  try {
+    const config = await Config.findOne({});
+    const response = await axios.post(
+      "https://api.remove.bg/v1.0/removebg",
+      req.body,
+      {
+        headers: {
+          // Add any required headers here, such as API keys or authentication tokens
+          Authorization: config.bgRemoverKey, // Replace with your actual API key
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    response.status(201).send(response);
+  } catch (e) {
+    response.status(400).send(e);
+  }
+});
+router.get("/remove-bg-cridits", async (req, res) => {
+  try {
+    const config = await Config.findOne({});
+    const response = await axios.get(
+      "https://api.remove.bg/v1.0/account",
+
+      {
+        headers: {
+          "X-Api-Key": "3kL9DkrabWcsGN4VDufiQCV1",
+          "Content-Type": "application/json",
+          // Add any required headers here, such as API keys or authentication tokens
+          // Authorization: config.bgRemoverKey, // Replace with your actual API key
+        },
+      }
+    );
+    // const data = fetch();
+    // fetch("https://api.remove.bg/v1.0/account", {
+    //   method: "GET", // *GET, POST, PUT, DELETE, etc.
+    //   headers: {
+    //     "X-Api-Key": "3kL9DkrabWcsGN4VDufiQCV1",
+    //     "Content-Type": "application/json",
+    //   },
+    // })
+    //   .then((data) => {
+    //   })
+    //   .finally((data) => {
+    //     console.log(data);
+    //   });
+    res.status(201).send(response);
+  } catch (e) {
+    res.status(400).send(e);
   }
 });
 

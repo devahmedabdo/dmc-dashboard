@@ -37,7 +37,10 @@ router.post(
       await product.save();
       res.status(200).send(product);
     } catch (e) {
-      res.status(400).send(e.message);
+      if (e.name == "ValidationError") {
+        return res.status(422).send(e.errors);
+      }
+      res.status(400).send(e);
     }
   }
 );
@@ -60,7 +63,10 @@ router.patch(
         product,
       });
     } catch (e) {
-      res.status(400).send(e.message);
+      if (e.name == "ValidationError") {
+        return res.status(422).send(e.errors);
+      }
+      res.status(400).send(e);
     }
   }
 );

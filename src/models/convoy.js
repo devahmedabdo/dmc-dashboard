@@ -16,6 +16,12 @@ const convoySchema = mongoose.Schema(
       date: {
         type: String,
         required: true,
+        trim: true,
+      },
+      postLink: {
+        type: String,
+        required: true,
+        trim: true,
       },
     },
     numbers: [
@@ -40,7 +46,10 @@ const convoySchema = mongoose.Schema(
         total: Number,
       },
     ],
-
+    puplished: {
+      type: Boolean,
+      default: false,
+    },
     collaborators: [
       {
         type: mongoose.Schema.Types.ObjectId,

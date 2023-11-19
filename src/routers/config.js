@@ -32,7 +32,10 @@ router.put(
       await config.save();
       res.status(200).send(config);
     } catch (e) {
-      res.status(400).send("e.message");
+      if (e.name == "ValidationError") {
+        return res.status(422).send(e.errors);
+      }
+      res.status(400).send(e);
     }
   }
 );

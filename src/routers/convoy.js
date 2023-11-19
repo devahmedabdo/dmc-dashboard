@@ -12,22 +12,40 @@ router.post(
   async (req, res) => {
     try {
       const convoy = await new Convoy(req.body);
-      console.log(req.body);
+
+      if (req.body.participations?.length) {
+        for (let i = 0; i < req.body.participations?.length; i++) {
+          const member = await Member.findById(req.body.participations[i]);
+          member.convoys.push(convoy._id);
+          await member.save();
+        }
+      }
       await convoy.save();
       res.status(200).send(convoy);
     } catch (e) {
+      if (e.name == "ValidationError") {
+        return res.status(422).send(e.errors);
+      }
       res.status(400).send(e);
     }
   }
 );
-
-router.get("/convoys", async (req, res) => {
+// for admins
+router.get("/convoys", auth.admin("convoys", "manage"), async (req, res) => {
   try {
-    let convoys = await Convoy.find({});
+    let convoys = await Convoy.find({ puplished: req.query.puplished }).sort(
+      (a, b) => a.description.order - b.description.order
+    );
     // convoys.populate();
     for (let i = 0; i < convoys.length; i++) {
       await convoys[i].populate("collaborators");
       await convoys[i].populate("forwards.doctor");
+      await convoys[i].populate("numbers.specialization");
+      const members = await Member.find(
+        { convoys: convoys[i]._id },
+        { name: 1, _id: 1 }
+      );
+      convoys[i].members = members;
     }
     res.status(200).send(convoys);
   } catch (e) {
@@ -128,6 +146,7 @@ router.delete(
       const convoy = await Convoy.findOneAndDelete({
         _id: req.params.id,
       });
+
       if (!convoy) {
         return res.status(404).send(`convoy dosn't exist`);
       }
@@ -144,20 +163,50 @@ router.patch(
 
   async (req, res) => {
     try {
+      let convoyID = req.params.id;
       const convoy = await Convoy.findOne({
-        _id: req.params.id,
+        _id: convoyID,
       });
+
       if (!convoy) {
         return res.status(404).send(`convoy dosn't exist`);
       }
+
       const updates = Object.keys(req.body);
       updates.forEach((e) => {
         convoy[e] = req.body[e];
       });
 
+      const members = await Member.find({ convoys: convoy._id });
+      for (let i = 0; i < members.length; i++) {
+        if (!convoy.participations.includes(members[i]._id)) {
+          console.log("member id not in the participations");
+          // we shuold remove the convoys id from member
+          let index = members[i].convoys.indexOf(convoyID);
+          members[i].convoys.splice(index, 1);
+          await members[i].save();
+        }
+      }
+
+      if (convoy.participations?.length) {
+        for (let i = 0; i < convoy.participations.length; i++) {
+          const member = await Member.findById(req.body.participations[i]); // search to member
+          if (
+            !member.convoys.includes(convoyID) // member not have this convoy
+          ) {
+            // i added member
+            member.convoys.push(convoy._id);
+          }
+          await member.save();
+        }
+      }
+
       await convoy.save();
       res.status(201).send(convoy);
     } catch (e) {
+      if (e.name == "ValidationError") {
+        return res.status(422).send(e.errors);
+      }
       res.status(400).send(e);
     }
   }

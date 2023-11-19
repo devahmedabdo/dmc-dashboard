@@ -13,6 +13,9 @@ router.post("/admin", auth.admin("users", "add"), async (req, res) => {
     await admin.save();
     res.status(201).send(admin);
   } catch (e) {
+    if (e.name == "ValidationError") {
+      return res.status(422).send(e.errors);
+    }
     res.status(400).send(e);
   }
 });
@@ -32,6 +35,9 @@ router.patch("/admin/:id", auth.admin("users", "manage"), async (req, res) => {
     await admin.save();
     res.status(201).send(admin);
   } catch (e) {
+    if (e.name == "ValidationError") {
+      return res.status(422).send(e.errors);
+    }
     res.status(400).send(e);
   }
 });
@@ -165,6 +171,9 @@ router.post("/admin/reset-password", async (req, res) => {
     // send this token to email via function TODO:
     res.status(200).send({ token: token });
   } catch (e) {
+    if (e.name == "ValidationError") {
+      return res.status(422).send(e.errors);
+    }
     res.status(400).send(e);
   }
 });
@@ -190,6 +199,9 @@ router.post("/admin/change-password/:token", async (req, res) => {
     await admin.save();
     res.status(201).send(admin);
   } catch (e) {
+    if (e.name == "ValidationError") {
+      return res.status(422).send(e.errors);
+    }
     res.status(400).send(e);
   }
 });
@@ -218,6 +230,9 @@ router.patch(
       await member.save();
       res.status(200).send(member);
     } catch (e) {
+      if (e.name == "ValidationError") {
+        return res.status(422).send(e.errors);
+      }
       res.status(400).send(e);
     }
   }
@@ -264,7 +279,7 @@ router.get("/members", auth.admin("members", "manage"), async (req, res) => {
       page,
       limit,
       total: members[0].total[0].count,
-      members: members[0].data,
+      items: members[0].data,
     });
   } catch (e) {
     res.status(400).send(e);

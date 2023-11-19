@@ -71,7 +71,10 @@ router.post(
       await collaborator.save();
       res.status(200).send(collaborator);
     } catch (e) {
-      res.status(400).send(e.message);
+      if (e.name == "ValidationError") {
+        return res.status(422).send(e.errors);
+      }
+      res.status(400).send(e);
     }
   }
 );
@@ -95,7 +98,10 @@ router.patch(
         collaborator,
       });
     } catch (e) {
-      res.status(400).send(e.message);
+      if (e.name == "ValidationError") {
+        return res.status(422).send(e.errors);
+      }
+      res.status(400).send(e);
     }
   }
 );

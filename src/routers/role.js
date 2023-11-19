@@ -44,7 +44,10 @@ router.post(
       // res.status(200).send(roles);
       res.status(200).send(role);
     } catch (e) {
-      res.status(400).send(e.message);
+      if (e.name == "ValidationError") {
+        return res.status(422).send(e.errors);
+      }
+      res.status(400).send(e);
     }
   }
 );
@@ -72,7 +75,10 @@ router.patch(
         role,
       });
     } catch (e) {
-      res.status(400).send(e.message);
+      if (e.name == "ValidationError") {
+        return res.status(422).send(e.errors);
+      }
+      res.status(400).send(e);
     }
   }
 );
