@@ -12,13 +12,47 @@ router.get(
       const limit = +process.env.LIMIT;
       const skip = (page - 1) * limit;
 
+      // const collaborators = await Collaborator.aggregate([
+      //   {
+      //     $facet: {
+      //       data: [
+      //         { $match: {} },
+      //         { $skip: skip },
+      //         { $limit: limit },
+      //         {
+      //           $lookup: {
+      //             from: "members",
+      //             localField: "responsible",
+      //             foreignField: "_id",
+      //             as: "responsible",
+      //           },
+      //         },
+      //         {
+      //           $lookup: {
+      //             from: "specializations",
+      //             localField: "specialization",
+      //             foreignField: "_id",
+      //             as: "specialization",
+      //           },
+      //         },
+      //         { $unwind: "$responsible" },
+      //         { $unwind: "$specialization" },
+      //       ],
+      //       total: [{ $count: "count" }],
+      //     },
+      //   },
+      // ]);
       const collaborators = await Collaborator.aggregate([
         {
           $facet: {
             data: [
-              { $match: {} },
               { $skip: skip },
               { $limit: limit },
+              {
+                $addFields: {
+                  responsibleExists: { $ifNull: ["$responsible", false] },
+                },
+              },
               {
                 $lookup: {
                   from: "members",
@@ -35,14 +69,40 @@ router.get(
                   as: "specialization",
                 },
               },
-              { $unwind: "$responsible" },
-              { $unwind: "$specialization" },
+              {
+                $unwind: {
+                  path: "$responsible",
+                  preserveNullAndEmptyArrays: true,
+                },
+              },
+              {
+                $unwind: {
+                  path: "$specialization",
+                  preserveNullAndEmptyArrays: true,
+                },
+              },
+              {
+                $project: {
+                  responsible: {
+                    $cond: {
+                      if: "$responsibleExists",
+                      then: "$responsible",
+                      else: null,
+                    },
+                  },
+                  specialization: 1,
+                  name: 1,
+                  personalPhone: 1,
+                  phone: 1,
+                  address: 1,
+                  // Add other fields you want to include in the result
+                },
+              },
             ],
             total: [{ $count: "count" }],
           },
         },
       ]);
-
       res.send({
         page,
         limit,

@@ -22,7 +22,7 @@ router.get("/products", async (req, res) => {
       page,
       limit,
       total: products[0].total[0]?.count || 0,
-      products: products[0].data,
+      items: products[0].data,
     });
   } catch (e) {
     res.status(400).send(e.message);

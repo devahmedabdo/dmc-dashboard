@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Role = require("../models/role");
 const auth = require("../middelware/auth");
+const roles = require("../middelware/roles");
 
 // all role
 router.get(
@@ -27,7 +28,8 @@ router.get(
         page,
         limit,
         total: role[0].total[0]?.count || 0,
-        role: role[0].data || [],
+        items: role[0].data || [],
+        permissions: roles,
       });
     } catch (e) {
       res.status(400).send(e.message);

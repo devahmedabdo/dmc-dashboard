@@ -33,9 +33,7 @@ router.post(
 // for admins
 router.get("/convoys", auth.admin("convoys", "manage"), async (req, res) => {
   try {
-    let convoys = await Convoy.find({ puplished: req.query.puplished }).sort(
-      (a, b) => a.description.order - b.description.order
-    );
+    let convoys = await Convoy.find({ puplished: req.query.puplished });
     // convoys.populate();
     for (let i = 0; i < convoys.length; i++) {
       await convoys[i].populate("collaborators");

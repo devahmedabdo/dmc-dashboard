@@ -29,19 +29,19 @@ router.get("/post", async (req, res) => {
     return res.send(error);
   }
 });
-// router.get("/post", async (req, res) => {
-//   try {
-//     let images = [];
-//     for (let i = 1; i <= 30; i++) {
-//       images.push(`convoys (${i})`);
-//     }
-//     setTimeout(() => {
-//       return res.send(images || []);
-//     }, 2000);
-//   } catch (error) {
-//     return res.send(error);
-//   }
-// });
+router.get("/postt", async (req, res) => {
+  try {
+    let images = [];
+    for (let i = 1; i <= 30; i++) {
+      images.push(`convoys (${i})`);
+    }
+    setTimeout(() => {
+      return res.send(images || []);
+    }, 2000);
+  } catch (error) {
+    return res.send(error);
+  }
+});
 const Config = require("../models/config");
 
 router.post("/remove-bg", async (req, res) => {
