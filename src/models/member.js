@@ -55,8 +55,15 @@ const memberSchema = mongoose.Schema({
       type: String,
       trim: true,
     },
+    twitter: {
+      type: String,
+      trim: true,
+    },
+    instagram: {
+      type: String,
+      trim: true,
+    },
   },
-
   password: {
     type: String,
     required: true,

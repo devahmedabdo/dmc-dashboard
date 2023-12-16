@@ -2,40 +2,37 @@ const express = require("express");
 const router = express.Router();
 const Role = require("../models/role");
 const auth = require("../middelware/auth");
-const roles = require("../middelware/roles");
+const permissions = require("../middelware/roles");
 
 // all role
-router.get(
-  "/roles",
-  auth.admin("roles", "manage"), // TODO: uncomment this
+router.get("/roles", auth.admin("roles", "manage"), async (req, res) => {
+  try {
+    const page = +req.query.page || 1;
+    const limit = +process.env.LIMIT;
+    const skip = (page - 1) * limit;
 
-  async (req, res) => {
-    try {
-      const page = +req.query.page || 1;
-      const limit = +process.env.LIMIT;
-      const skip = (page - 1) * limit;
-
-      const role = await Role.aggregate([
-        {
-          $facet: {
-            data: [{ $match: {} }, { $skip: skip }, { $limit: limit }],
-            total: [{ $count: "count" }],
-          },
+    const roles = await Role.aggregate([
+      {
+        $facet: {
+          data: [{ $match: {} }, { $skip: skip }, { $limit: limit }],
+          count: [{ $count: "total" }],
         },
-      ]);
+      },
+    ]);
 
-      res.send({
-        page,
-        limit,
-        total: role[0].total[0]?.count || 0,
-        items: role[0].data || [],
-        permissions: roles,
-      });
-    } catch (e) {
-      res.status(400).send(e.message);
-    }
+    res.send({
+      pagination: {
+        page: page,
+        limit: limit,
+        total: roles[0].count.length ? roles[0].count[0].total : 0,
+      },
+      items: roles[0].data || [],
+      permissions,
+    });
+  } catch (e) {
+    res.status(400).send(e.message);
   }
-);
+});
 router.post(
   "/role",
   auth.admin("roles", "add"), //TODO: uncomment this

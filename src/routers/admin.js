@@ -5,6 +5,7 @@ const Admin = require("../models/admin");
 const auth = require("../middelware/auth");
 const Member = require("../models/member");
 const jwt = require("jsonwebtoken");
+
 // get all admins
 router.get("/admins", auth.admin("users", "manage"), async (req, res) => {
   try {
@@ -30,16 +31,17 @@ router.get("/admins", auth.admin("users", "manage"), async (req, res) => {
         },
       },
     ]);
+
     res.status(200).send({
       items: admins[0].data,
       pagination: {
         page: page,
         limit: limit,
-        total: admins[0].count[0].total,
+        total: admins[0].count.length ? admins[0].count[0].total : 0,
       },
     });
   } catch (e) {
-    res.status(400).send(e);
+    res.status(400).send(e.message);
   }
 });
 // add admin
@@ -48,11 +50,29 @@ router.post("/admin", auth.admin("users", "add"), async (req, res) => {
     const admin = await new Admin(req.body);
     await admin.save();
     res.status(201).send(admin);
-  } catch (e) {
-    if (e.name == "ValidationError") {
-      return res.status(422).send(e.errors);
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      if (error.errors) {
+        const validationErrors = {};
+        for (const field in error.errors) {
+          if (error.errors.hasOwnProperty(field)) {
+            validationErrors[field] = error.errors[field].message;
+          }
+        }
+        return res.status(422).send({ errors: validationErrors });
+      } else {
+        return res.status(422).send({ errors: { general: error.message } });
+      }
+    } else if (error.code === 11000) {
+      // Duplicate key error
+      const field = Object.keys(error.keyValue)[0];
+      const duplicateError = {
+        [field]: `The ${field} '${error.keyValue[field]}' is already in use.`,
+      };
+      return res.status(422).send({ errors: duplicateError });
+    } else {
+      return res.status(400).send(error);
     }
-    res.status(400).send(e);
   }
 });
 // update admin
@@ -71,24 +91,28 @@ router.patch("/admin/:id", auth.admin("users", "manage"), async (req, res) => {
     await admin.save();
     res.status(201).send(admin);
   } catch (e) {
-    if (e.name == "ValidationError") {
-      return res.status(422).send(e.errors);
+    if (error.name === "ValidationError") {
+      if (error.errors) {
+        const validationErrors = {};
+        for (const field in error.errors) {
+          if (error.errors.hasOwnProperty(field)) {
+            validationErrors[field] = error.errors[field].message;
+          }
+        }
+        return res.status(422).send({ errors: validationErrors });
+      } else {
+        return res.status(422).send({ errors: { general: error.message } });
+      }
+    } else if (error.code === 11000) {
+      // Duplicate key error
+      const field = Object.keys(error.keyValue)[0];
+      const duplicateError = {
+        [field]: `The ${field} '${error.keyValue[field]}' is already in use.`,
+      };
+      return res.status(422).send({ errors: duplicateError });
+    } else {
+      return res.status(400).send(error);
     }
-    res.status(400).send(e);
-  }
-});
-// get admin
-router.get("/admin/:id", auth.admin("users", "manage"), async (req, res) => {
-  try {
-    const admin = await Admin.findOne({
-      _id: req.params.id,
-    });
-    if (!admin) {
-      return res.status(404).send(`admin dosn't exist`);
-    }
-    res.status(200).send(admin);
-  } catch (e) {
-    res.status(400).send(e);
   }
 });
 // delete admin
@@ -105,6 +129,21 @@ router.delete("/admin/:id", auth.admin("users", "delete"), async (req, res) => {
     res.status(400).send(e);
   }
 });
+// get admin TODO: not important
+router.get("/admin/:id", auth.admin("users", "manage"), async (req, res) => {
+  try {
+    const admin = await Admin.findOne({
+      _id: req.params.id,
+    });
+    if (!admin) {
+      return res.status(404).send(`admin dosn't exist`);
+    }
+    res.status(200).send(admin);
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
+
 // end admin sessions (logout)
 router.delete(
   "/admin/sessions/:id",
@@ -135,8 +174,6 @@ router.post("/admin/login", async (req, res) => {
       req.body.password
     );
     const token = await admin.generateToken();
-    console.log(token);
-
     res.status(200).send({ admin, token });
   } catch (e) {
     res.status(401).send(e.message);
@@ -213,6 +250,35 @@ router.post("/admin/change-password/:token", async (req, res) => {
 
 // members //////
 // modify  member
+router.post("/admin/member", auth.admin("members", "add"), async (req, res) => {
+  try {
+    const member = await new Member(req.body);
+    await member.save();
+    res.status(201).send(member);
+  } catch (e) {
+    if (e.name == "ValidationError") {
+      return res.status(422).send(e.errors);
+    }
+    res.status(400).send(e);
+  }
+});
+router.get(
+  "/admin/member/:id",
+  auth.admin("members", "manage"),
+  async (req, res) => {
+    try {
+      const member = await Member.findOne({
+        _id: req.params.id,
+      });
+      if (!member) {
+        return res.status(404).send(`Member dosn't exist`);
+      }
+      res.status(200).send(member);
+    } catch (e) {
+      res.status(400).send(e);
+    }
+  }
+);
 router.patch(
   "/admin/member/:id",
   auth.admin("members", "manage"),
@@ -247,18 +313,10 @@ router.delete(
   auth.admin("members", "delete"),
   async (req, res) => {
     try {
-      const member = await Member.findOne({
+      const member = await Member.findOneAndDelete({
         _id: req.params.id,
       });
-      if (!member) {
-        return res.status(404).send(`member dosn't exist`);
-      }
-      const updates = Object.keys(req.body);
-      updates.forEach((e) => {
-        req.member[e] = req.body[e];
-      });
-      await member.save();
-      res.status(200).send();
+      res.status(200).send(member);
     } catch (e) {
       res.status(400).send(e);
     }
@@ -275,15 +333,29 @@ router.get("/members", auth.admin("members", "manage"), async (req, res) => {
     const members = await Member.aggregate([
       {
         $facet: {
-          data: [{ $match: filter }, { $skip: skip }, { $limit: limit }],
+          data: [
+            { $match: filter },
+            { $skip: skip },
+            { $limit: limit },
+            {
+              $project: {
+                _id: 1, // Include or exclude fields based on your requirements
+                name: 1,
+                // Add more fields as needed
+              },
+            },
+          ],
           total: [{ $count: "count" }],
         },
       },
     ]);
-    res.send({
+    const pagination = {
       page,
       limit,
       total: members[0].total[0].count,
+    };
+    res.send({
+      pagination,
       items: members[0].data,
     });
   } catch (e) {

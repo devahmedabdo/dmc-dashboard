@@ -11,6 +11,7 @@ router.post("/member", async (req, res) => {
     req.body.new = true;
     const member = await new Member(req.body);
     await member.save();
+    // TODO: send mail to admin
     res.status(201).send(member);
   } catch (e) {
     if (e.name == "ValidationError") {
@@ -19,6 +20,7 @@ router.post("/member", async (req, res) => {
     res.status(400).send(e);
   }
 });
+
 // update member
 router.patch("/member", auth.member, async (req, res) => {
   try {

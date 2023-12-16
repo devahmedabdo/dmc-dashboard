@@ -211,7 +211,10 @@ router.patch(
 );
 router.get("/select/convoys", async (req, res) => {
   try {
-    let convoys = await Convoy.find({}, { id: 1, description: 1 });
+    let convoys = await Convoy.find(
+      { puplished: true },
+      { id: 1, description: 1 }
+    );
     res.status(200).send(convoys);
   } catch (e) {
     res.status(401).send("401" + e);

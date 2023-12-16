@@ -21,7 +21,7 @@ require("./src/db/mongoose");
 // to use my route in front
 app.use(cors());
 // parse automatic
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 //
 app.use(adminRouter);
 app.use(collaboratorRouter);
