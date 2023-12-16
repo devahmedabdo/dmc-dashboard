@@ -104,7 +104,7 @@ router.get(
   auth.admin("roles", "manage"), // TODO: uncomment this
   async (req, res) => {
     try {
-      const roles = await Role.find({}, { title: 1, _id: 1 });
+      const roles = await Role.find({}, { name: 1, _id: 1 });
       res.send(roles);
     } catch (e) {
       res.status(400).send(e.message);

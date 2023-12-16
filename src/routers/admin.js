@@ -5,7 +5,43 @@ const Admin = require("../models/admin");
 const auth = require("../middelware/auth");
 const Member = require("../models/member");
 const jwt = require("jsonwebtoken");
-
+// get all admins
+router.get("/admins", auth.admin("users", "manage"), async (req, res) => {
+  try {
+    const page = +req.query.page || 1;
+    const limit = +process.env.LIMIT;
+    const skip = (page - 1) * limit;
+    const admins = await Admin.aggregate([
+      {
+        $facet: {
+          data: [
+            { $skip: skip },
+            { $limit: limit },
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                role: 1,
+                email: 1,
+              },
+            },
+          ],
+          count: [{ $count: "total" }],
+        },
+      },
+    ]);
+    res.status(200).send({
+      items: admins[0].data,
+      pagination: {
+        page: page,
+        limit: limit,
+        total: admins[0].count[0].total,
+      },
+    });
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
 // add admin
 router.post("/admin", auth.admin("users", "add"), async (req, res) => {
   try {
@@ -89,38 +125,7 @@ router.delete(
     }
   }
 );
-// get all admins
-router.get("/admins", auth.admin("users", "manage"), async (req, res) => {
-  try {
-    const page = +req.query.page || 1;
-    const limit = +process.env.LIMIT;
-    const skip = (page - 1) * limit;
 
-    const admins = await Admin.aggregate([
-      {
-        $match: {
-          card: true,
-          status: true,
-        },
-      },
-      {
-        $facet: {
-          data: [{ $skip: skip }, { $limit: limit }],
-          count: [{ $count: "total" }],
-        },
-      },
-    ]);
-
-    res.status(200).send({
-      page,
-      limit,
-      total: admins[0].count[0].total,
-      admins: admins[0].data,
-    });
-  } catch (e) {
-    res.status(400).send(e);
-  }
-});
 // admin login
 router.post("/admin/login", async (req, res) => {
   try {
