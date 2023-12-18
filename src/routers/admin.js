@@ -345,18 +345,18 @@ router.get("/members", auth.admin("members", "manage"), async (req, res) => {
               },
             },
           ],
-          total: [{ $count: "count" }],
+          count: [{ $count: "count" }],
         },
       },
     ]);
-    const pagination = {
-      page,
-      limit,
-      total: members[0].total[0].count,
-    };
+
     res.send({
-      pagination,
       items: members[0].data,
+      pagination: {
+        page: page,
+        limit: limit,
+        total: members[0].count.length ? members[0].count[0].total : 0,
+      },
     });
   } catch (e) {
     res.status(400).send(e);

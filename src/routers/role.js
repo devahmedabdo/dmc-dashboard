@@ -42,11 +42,29 @@ router.post(
       await role.save();
       // res.status(200).send(roles);
       res.status(200).send(role);
-    } catch (e) {
-      if (e.name == "ValidationError") {
-        return res.status(422).send(e.errors);
+    } catch (error) {
+      if (error.name === "ValidationError") {
+        if (error.errors) {
+          const validationErrors = {};
+          for (const field in error.errors) {
+            if (error.errors.hasOwnProperty(field)) {
+              validationErrors[field] = error.errors[field].message;
+            }
+          }
+          return res.status(422).send({ errors: validationErrors });
+        } else {
+          return res.status(422).send({ errors: { general: error.message } });
+        }
+      } else if (error.code === 11000) {
+        // Duplicate key error
+        const field = Object.keys(error.keyValue)[0];
+        const duplicateError = {
+          [field]: `The ${field} '${error.keyValue[field]}' is already in use.`,
+        };
+        return res.status(422).send({ errors: duplicateError });
+      } else {
+        return res.status(400).send(error);
       }
-      res.status(400).send(e);
     }
   }
 );
