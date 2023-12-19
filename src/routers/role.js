@@ -48,7 +48,9 @@ router.post(
           const validationErrors = {};
           for (const field in error.errors) {
             if (error.errors.hasOwnProperty(field)) {
-              validationErrors[field] = error.errors[field].message;
+              validationErrors[field] = {
+                message: error.errors[field].message,
+              };
             }
           }
           return res.status(422).send({ errors: validationErrors });
@@ -59,7 +61,9 @@ router.post(
         // Duplicate key error
         const field = Object.keys(error.keyValue)[0];
         const duplicateError = {
-          [field]: `The ${field} '${error.keyValue[field]}' is already in use.`,
+          [field]: {
+            message: `القيمة موجودة مسبقا `,
+          },
         };
         return res.status(422).send({ errors: duplicateError });
       } else {
@@ -92,10 +96,32 @@ router.patch(
         role,
       });
     } catch (e) {
-      if (e.name == "ValidationError") {
-        return res.status(422).send(e.errors);
+      if (error.name === "ValidationError") {
+        if (error.errors) {
+          const validationErrors = {};
+          for (const field in error.errors) {
+            if (error.errors.hasOwnProperty(field)) {
+              validationErrors[field] = {
+                message: error.errors[field].message,
+              };
+            }
+          }
+          return res.status(422).send({ errors: validationErrors });
+        } else {
+          return res.status(422).send({ errors: { general: error.message } });
+        }
+      } else if (error.code === 11000) {
+        // Duplicate key error
+        const field = Object.keys(error.keyValue)[0];
+        const duplicateError = {
+          [field]: {
+            message: `القيمة موجودة مسبقا `,
+          },
+        };
+        return res.status(422).send({ errors: duplicateError });
+      } else {
+        return res.status(400).send(error);
       }
-      res.status(400).send(e);
     }
   }
 );

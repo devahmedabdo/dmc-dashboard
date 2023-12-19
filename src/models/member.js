@@ -89,14 +89,15 @@ const memberSchema = mongoose.Schema({
     required: true,
   },
   status: {
-    type: Boolean,
+    type: String,
     required: true,
-    default: false,
+    default: 0,
   },
-  new: {
-    type: Boolean,
-    default: false,
-  },
+  // 0 blocked
+  // 1 new
+  // 2 update req
+  // 3 active
+
   card: {
     type: Boolean,
     required: true,

@@ -56,7 +56,7 @@ router.post("/admin", auth.admin("users", "add"), async (req, res) => {
         const validationErrors = {};
         for (const field in error.errors) {
           if (error.errors.hasOwnProperty(field)) {
-            validationErrors[field] = error.errors[field].message;
+            validationErrors[field] = { message: error.errors[field].message };
           }
         }
         return res.status(422).send({ errors: validationErrors });
@@ -67,7 +67,9 @@ router.post("/admin", auth.admin("users", "add"), async (req, res) => {
       // Duplicate key error
       const field = Object.keys(error.keyValue)[0];
       const duplicateError = {
-        [field]: `The ${field} '${error.keyValue[field]}' is already in use.`,
+        [field]: {
+          message: `القيمة موجودة مسبقا `,
+        },
       };
       return res.status(422).send({ errors: duplicateError });
     } else {
@@ -90,13 +92,13 @@ router.patch("/admin/:id", auth.admin("users", "manage"), async (req, res) => {
     });
     await admin.save();
     res.status(201).send(admin);
-  } catch (e) {
+  } catch (error) {
     if (error.name === "ValidationError") {
       if (error.errors) {
         const validationErrors = {};
         for (const field in error.errors) {
           if (error.errors.hasOwnProperty(field)) {
-            validationErrors[field] = error.errors[field].message;
+            validationErrors[field] = { message: error.errors[field].message };
           }
         }
         return res.status(422).send({ errors: validationErrors });
@@ -107,7 +109,9 @@ router.patch("/admin/:id", auth.admin("users", "manage"), async (req, res) => {
       // Duplicate key error
       const field = Object.keys(error.keyValue)[0];
       const duplicateError = {
-        [field]: `The ${field} '${error.keyValue[field]}' is already in use.`,
+        [field]: {
+          message: `القيمة موجودة مسبقا `,
+        },
       };
       return res.status(422).send({ errors: duplicateError });
     } else {
@@ -248,18 +252,38 @@ router.post("/admin/change-password/:token", async (req, res) => {
   }
 });
 
-// members //////
+// members /////////////////////////////////////////////////////////////////////////
 // modify  member
 router.post("/admin/member", auth.admin("members", "add"), async (req, res) => {
   try {
     const member = await new Member(req.body);
     await member.save();
     res.status(201).send(member);
-  } catch (e) {
-    if (e.name == "ValidationError") {
-      return res.status(422).send(e.errors);
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      if (error.errors) {
+        const validationErrors = {};
+        for (const field in error.errors) {
+          if (error.errors.hasOwnProperty(field)) {
+            validationErrors[field] = { message: error.errors[field].message };
+          }
+        }
+        return res.status(422).send({ errors: validationErrors });
+      } else {
+        return res.status(422).send({ errors: { general: error.message } });
+      }
+    } else if (error.code === 11000) {
+      // Duplicate key error
+      const field = Object.keys(error.keyValue)[0];
+      const duplicateError = {
+        [field]: {
+          message: `The ${field} '${error.keyValue[field]}' is already in use.`,
+        },
+      };
+      return res.status(422).send({ errors: duplicateError });
+    } else {
+      return res.status(400).send(error);
     }
-    res.status(400).send(e);
   }
 });
 router.get(
@@ -290,21 +314,44 @@ router.patch(
       if (!member) {
         return res.status(404).send(`Member dosn't exist`);
       }
+
       const updates = Object.keys(req.body);
       updates.forEach((e) => {
-        if (e == "card") {
-          // prevent admin to show member card
+        if (e == "card" || e == "showImg") {
           return;
         }
         member[e] = req.body[e];
       });
       await member.save();
+      // TODO: Send Email to Member
       res.status(200).send(member);
-    } catch (e) {
-      if (e.name == "ValidationError") {
-        return res.status(422).send(e.errors);
+    } catch (error) {
+      if (error.name === "ValidationError") {
+        if (error.errors) {
+          const validationErrors = {};
+          for (const field in error.errors) {
+            if (error.errors.hasOwnProperty(field)) {
+              validationErrors[field] = {
+                message: error.errors[field].message,
+              };
+            }
+          }
+          return res.status(422).send({ errors: validationErrors });
+        } else {
+          return res.status(422).send({ errors: { general: error.message } });
+        }
+      } else if (error.code === 11000) {
+        // Duplicate key error
+        const field = Object.keys(error.keyValue)[0];
+        const duplicateError = {
+          [field]: {
+            message: `The ${field} '${error.keyValue[field]}' is already in use.`,
+          },
+        };
+        return res.status(422).send({ errors: duplicateError });
+      } else {
+        return res.status(400).send(error);
       }
-      res.status(400).send(e);
     }
   }
 );
@@ -330,18 +377,18 @@ router.get("/members", auth.admin("members", "manage"), async (req, res) => {
     const skip = (page - 1) * limit;
     const filter = req.query;
     delete filter.page;
+    console.log(filter);
     const members = await Member.aggregate([
+      { $match: filter },
       {
         $facet: {
           data: [
-            { $match: filter },
             { $skip: skip },
             { $limit: limit },
             {
               $project: {
-                _id: 1, // Include or exclude fields based on your requirements
+                _id: 1,
                 name: 1,
-                // Add more fields as needed
               },
             },
           ],
@@ -349,13 +396,12 @@ router.get("/members", auth.admin("members", "manage"), async (req, res) => {
         },
       },
     ]);
-
     res.send({
       items: members[0].data,
       pagination: {
         page: page,
         limit: limit,
-        total: members[0].count.length ? members[0].count[0].total : 0,
+        total: members[0].count.length ? members[0].count[0].count : 0,
       },
     });
   } catch (e) {

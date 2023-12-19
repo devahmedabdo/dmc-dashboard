@@ -30,22 +30,56 @@ router.post(
     }
   }
 );
+// // for admins
+// router.get("/convoys", auth.admin("convoys", "manage"), async (req, res) => {
+//   try {
+//     let convoys = await Convoy.find({ puplished: req.query.puplished });
+//     // convoys.populate();
+//     for (let i = 0; i < convoys.length; i++) {
+//       // await convoys[i].populate("collaborators");
+//       // await convoys[i].populate("forwards.doctor");
+//       await convoys[i].populate("numbers.specialization");
+//       const members = await Member.find(
+//         { convoys: convoys[i]._id },
+//         { name: 1, _id: 1 }
+//       );
+//       convoys[i].members = members;
+//     }
+//     res.status(200).send(convoys);
+//   } catch (e) {
+//     res.status(401).send("401" + e);
+//   }
+// });
 // for admins
 router.get("/convoys", auth.admin("convoys", "manage"), async (req, res) => {
   try {
-    let convoys = await Convoy.find({ puplished: req.query.puplished });
-    // convoys.populate();
-    for (let i = 0; i < convoys.length; i++) {
-      await convoys[i].populate("collaborators");
-      await convoys[i].populate("forwards.doctor");
-      await convoys[i].populate("numbers.specialization");
-      const members = await Member.find(
-        { convoys: convoys[i]._id },
-        { name: 1, _id: 1 }
-      );
-      convoys[i].members = members;
-    }
-    res.status(200).send(convoys);
+    const page = +req.query.page || 1;
+    const limit = +process.env.LIMIT;
+    const skip = (page - 1) * limit;
+
+    console.log(req.query.puplished);
+    const convoys = await Convoy.aggregate([
+      {
+        $match: {
+          puplished: req.query.puplished,
+        },
+      },
+      {
+        $facet: {
+          data: [{ $skip: skip }, { $limit: limit }],
+          count: [{ $count: "count" }],
+        },
+      },
+    ]);
+    res.send({
+      sitems: convoys,
+      items: convoys[0].data,
+      pagination: {
+        page: page,
+        limit: limit,
+        total: convoys[0].count.length ? convoys[0].count[0].count : 0,
+      },
+    });
   } catch (e) {
     res.status(401).send("401" + e);
   }
