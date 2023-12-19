@@ -124,17 +124,38 @@ router.get(
 router.post(
   "/collaborator",
   auth.admin("collaporator", "add"),
-
   async (req, res) => {
     try {
       const collaborator = await new Collaborator(req.body);
       await collaborator.save();
       res.status(200).send(collaborator);
-    } catch (e) {
-      if (e.name == "ValidationError") {
-        return res.status(422).send(e.errors);
+    } catch (error) {
+      if (error.name === "ValidationError") {
+        if (error.errors) {
+          const validationErrors = {};
+          for (const field in error.errors) {
+            if (error.errors.hasOwnProperty(field)) {
+              validationErrors[field] = {
+                message: error.errors[field].message,
+              };
+            }
+          }
+          return res.status(422).send({ errors: validationErrors });
+        } else {
+          return res.status(422).send({ errors: { general: error.message } });
+        }
+      } else if (error.code === 11000) {
+        // Duplicate key error
+        const field = Object.keys(error.keyValue)[0];
+        const duplicateError = {
+          [field]: {
+            message: `القيمة موجودة مسبقا `,
+          },
+        };
+        return res.status(422).send({ errors: duplicateError });
+      } else {
+        return res.status(400).send(error);
       }
-      res.status(400).send(e);
     }
   }
 );
@@ -157,11 +178,33 @@ router.patch(
       res.status(200).send({
         collaborator,
       });
-    } catch (e) {
-      if (e.name == "ValidationError") {
-        return res.status(422).send(e.errors);
+    } catch (error) {
+      if (error.name === "ValidationError") {
+        if (error.errors) {
+          const validationErrors = {};
+          for (const field in error.errors) {
+            if (error.errors.hasOwnProperty(field)) {
+              validationErrors[field] = {
+                message: error.errors[field].message,
+              };
+            }
+          }
+          return res.status(422).send({ errors: validationErrors });
+        } else {
+          return res.status(422).send({ errors: { general: error.message } });
+        }
+      } else if (error.code === 11000) {
+        // Duplicate key error
+        const field = Object.keys(error.keyValue)[0];
+        const duplicateError = {
+          [field]: {
+            message: `القيمة موجودة مسبقا `,
+          },
+        };
+        return res.status(422).send({ errors: duplicateError });
+      } else {
+        return res.status(400).send(error);
       }
-      res.status(400).send(e);
     }
   }
 );

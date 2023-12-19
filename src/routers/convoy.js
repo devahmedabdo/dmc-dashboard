@@ -33,7 +33,7 @@ router.post(
 // // for admins
 // router.get("/convoys", auth.admin("convoys", "manage"), async (req, res) => {
 //   try {
-//     let convoys = await Convoy.find({ puplished: req.query.puplished });
+//     let convoys = await Convoy.find({ status: req.query.status });
 //     // convoys.populate();
 //     for (let i = 0; i < convoys.length; i++) {
 //       // await convoys[i].populate("collaborators");
@@ -56,12 +56,10 @@ router.get("/convoys", auth.admin("convoys", "manage"), async (req, res) => {
     const page = +req.query.page || 1;
     const limit = +process.env.LIMIT;
     const skip = (page - 1) * limit;
-
-    console.log(req.query.puplished);
     const convoys = await Convoy.aggregate([
       {
         $match: {
-          puplished: req.query.puplished,
+          status: req.query.status,
         },
       },
       {
@@ -72,7 +70,6 @@ router.get("/convoys", auth.admin("convoys", "manage"), async (req, res) => {
       },
     ]);
     res.send({
-      sitems: convoys,
       items: convoys[0].data,
       pagination: {
         page: page,
@@ -81,7 +78,7 @@ router.get("/convoys", auth.admin("convoys", "manage"), async (req, res) => {
       },
     });
   } catch (e) {
-    res.status(401).send("401" + e);
+    res.status(400).send(e);
   }
 });
 // get convoy details
@@ -246,7 +243,7 @@ router.patch(
 router.get("/select/convoys", async (req, res) => {
   try {
     let convoys = await Convoy.find(
-      { puplished: true },
+      { status: true },
       { id: 1, description: 1 }
     );
     res.status(200).send(convoys);

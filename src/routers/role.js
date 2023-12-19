@@ -95,7 +95,7 @@ router.patch(
       res.status(200).send({
         role,
       });
-    } catch (e) {
+    } catch (error) {
       if (error.name === "ValidationError") {
         if (error.errors) {
           const validationErrors = {};

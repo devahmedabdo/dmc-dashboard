@@ -12,17 +12,26 @@ router.get("/products", async (req, res) => {
     const products = await Product.aggregate([
       {
         $facet: {
-          data: [{ $match: {} }, { $skip: skip }, { $limit: limit }],
-          total: [{ $count: "count" }],
+          data: [
+            {
+              $match: {
+                status: req.query.status,
+              },
+            },
+            { $skip: skip },
+            { $limit: limit },
+          ],
+          count: [{ $count: "count" }],
         },
       },
     ]);
-
     res.send({
-      page,
-      limit,
-      total: products[0].total[0]?.count || 0,
       items: products[0].data,
+      pagination: {
+        page: page,
+        limit: limit,
+        total: products[0].count.length ? products[0].count[0].count : 0,
+      },
     });
   } catch (e) {
     res.status(400).send(e.message);

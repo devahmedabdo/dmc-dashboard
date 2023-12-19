@@ -33,6 +33,7 @@ const convoySchema = mongoose.Schema(
           // doctor
         },
         total: Number,
+        _id: false,
       },
     ],
     forwards: [
@@ -44,11 +45,13 @@ const convoySchema = mongoose.Schema(
           // doctor
         },
         total: Number,
+        _id: false,
       },
     ],
-    puplished: {
-      type: Boolean,
-      default: false,
+    status: {
+      type: String,
+      required: true,
+      default: "0",
     },
     collaborators: [
       {
