@@ -24,6 +24,11 @@ const orderSchema = mongoose.Schema(
       trim: true,
       required: true,
     },
+    phone_2: {
+      type: String,
+      trim: true,
+      required: true,
+    },
     city: {
       type: String,
       trim: true,
@@ -34,9 +39,10 @@ const orderSchema = mongoose.Schema(
       trim: true,
       required: true,
     },
-    read: {
-      type: Boolean,
-      default: false,
+    status: {
+      type: String,
+      required: true,
+      default: "0",
     },
 
     products: [
@@ -45,14 +51,12 @@ const orderSchema = mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           required: true,
           ref: "Product",
-          // doctor
         },
         total: {
           type: Number,
           required: true,
           min: 1,
         },
-
         _id: false,
       },
     ],
