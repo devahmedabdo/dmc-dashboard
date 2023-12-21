@@ -1,19 +1,19 @@
 const express = require("express");
 const router = express.Router();
-const Specialization = require("../models/specialization");
-const Collaborator = require("../models/collaborator");
+const Committee = require("../models/committee");
 const auth = require("../middelware/auth");
-// all specialization
+const Member = require("../models/member");
+// all committee
 router.get(
-  "/specializations",
-  auth.admin("specialization", "manage"),
+  "/committees",
+  auth.admin("committee", "manage"),
   async (req, res) => {
     try {
       const page = +req.query.page || 1;
       const limit = +process.env.LIMIT;
       const skip = (page - 1) * limit;
 
-      const specializations = await Specialization.aggregate([
+      const committees = await Committee.aggregate([
         {
           $facet: {
             data: [{ $match: {} }, { $skip: skip }, { $limit: limit }],
@@ -21,24 +21,21 @@ router.get(
           },
         },
       ]);
-
-      for (let i = 0; i < specializations[0].data.length; i++) {
-        const collaborators = await Collaborator.find(
-          { specialization: specializations[0].data[i]._id },
+      for (let i = 0; i < committees[0].data.length; i++) {
+        const members = await Member.find(
+          { committee: committees[0].data[i]._id },
           { _id: 1 }
         );
-        specializations[0].data[i].collaborators = collaborators;
+        committees[0].data[i].members = members;
       }
 
       res.send({
         pagination: {
           page: page,
           limit: limit,
-          total: specializations[0].count.length
-            ? specializations[0].count[0].total
-            : 0,
+          total: committees[0].count.length ? committees[0].count[0].total : 0,
         },
-        items: specializations[0].data || [],
+        items: committees[0].data || [],
       });
     } catch (e) {
       res.status(400).send(e.message);
@@ -46,14 +43,14 @@ router.get(
   }
 );
 router.post(
-  "/specialization",
-  auth.admin("specialization", "add"),
+  "/committee",
+  auth.admin("committee", "add"),
   // auth.admin(["administrator"]), TODO: uncomment this
   async (req, res) => {
     try {
-      const specialization = await new Specialization(req.body);
-      await specialization.save();
-      res.status(200).send(specialization);
+      const committee = await new Committee(req.body);
+      await committee.save();
+      res.status(200).send(committee);
     } catch (error) {
       if (error.name === "ValidationError") {
         if (error.errors) {
@@ -85,26 +82,26 @@ router.post(
   }
 );
 router.patch(
-  "/specialization/:id",
-  auth.admin("specialization", "manage"),
-  // auth.admin(["administrator"]), TODO: uncomment this *ngIf="!special.collaborators.length"
+  "/committee/:id",
+  auth.admin("committee", "manage"),
+  // auth.admin(["administrator"]), TODO: uncomment this
   async (req, res) => {
     try {
-      const specialization = await Specialization.findOne({
+      const committee = await Committee.findOne({
         _id: req.params.id,
       });
-      console.log(specialization);
-      if (!specialization) {
-        return res.status(404).send("no specialization founded");
+      console.log(committee);
+      if (!committee) {
+        return res.status(404).send("no committee founded");
       }
       const updates = Object.keys(req.body);
       updates.forEach((e) => {
-        specialization[e] = req.body[e];
+        committee[e] = req.body[e];
       });
 
-      await specialization.save();
+      await committee.save();
       res.status(200).send({
-        specialization,
+        committee,
       });
     } catch (error) {
       if (error.name === "ValidationError") {
@@ -137,35 +134,36 @@ router.patch(
   }
 );
 router.delete(
-  "/specialization/:id",
-  auth.admin("specialization", "delete"),
+  "/committee/:id",
+  auth.admin("committee", "delete"),
+  // auth.admin(["administrator"]), TODO: uncomment this,
   async (req, res) => {
-    const specialization = await Specialization.findById(req.params.id);
-    const collaborators = await Collaborator.find({
-      specialization: specialization._id,
+    const committee = await Committee.findById(req.params.id);
+    const members = await Member.find({
+      committee: committee._id,
     });
-    if (!specialization) {
+    if (!committee) {
       return res.status(404).send("التخصص لم يعد موجودا");
     }
-    if (collaborators.length) {
+    if (members.length) {
       return res
         .status(409)
-        .send({ message: "لا يمكن حذف التخصص طالما به اطباء" });
+        .send({ message: "لا يمكن حذف اللجنة طالما بها اعضاء" });
     }
-    await Specialization.findOneAndDelete({
+    await Committee.findOneAndDelete({
       _id: req.params.id,
     });
 
-    res.status(200).send(specialization);
+    res.status(200).send(committee);
   }
 );
 router.get(
-  "/select/specializations",
-  auth.admin("specialization", "manage"),
+  "/select/committees",
+  auth.admin("committee", "manage"),
   async (req, res) => {
     try {
-      const specialization = await Specialization.find({}, { name: 1, _id: 1 });
-      res.send(specialization);
+      const committee = await Committee.find({}, { name: 1, _id: 1 });
+      res.send(committee);
     } catch (e) {
       res.status(400).send(e.message);
     }

@@ -14,12 +14,16 @@ router.post(
       const convoy = await new Convoy(req.body);
 
       if (req.body.participations?.length) {
+        console.log("there is aparticipations");
         for (let i = 0; i < req.body.participations?.length; i++) {
           const member = await Member.findById(req.body.participations[i]);
+          console.log("member");
+          console.log(convoy._id);
           member.convoys.push(convoy._id);
           await member.save();
         }
       }
+      console.log("start save convoy");
       await convoy.save();
       res.status(200).send(convoy);
     } catch (e) {
@@ -62,6 +66,7 @@ router.get("/convoys", auth.admin("convoys", "manage"), async (req, res) => {
           status: req.query.status,
         },
       },
+
       {
         $facet: {
           data: [{ $skip: skip }, { $limit: limit }],
@@ -69,6 +74,13 @@ router.get("/convoys", auth.admin("convoys", "manage"), async (req, res) => {
         },
       },
     ]);
+    for (let i = 0; i < convoys[0].data.length; i++) {
+      const members = await Member.find(
+        { convoys: convoys[0].data[i]._id },
+        { _id: 1 }
+      );
+      convoys[0].data[i].members = members;
+    }
     res.send({
       items: convoys[0].data,
       pagination: {
@@ -243,8 +255,8 @@ router.patch(
 router.get("/select/convoys", async (req, res) => {
   try {
     let convoys = await Convoy.find(
-      { status: true },
-      { id: 1, description: 1 }
+      { status: "1" },
+      { id: 1, description: { address: 1 } }
     );
     res.status(200).send(convoys);
   } catch (e) {

@@ -81,8 +81,9 @@ const memberSchema = mongoose.Schema({
     // },
   },
   committee: {
-    type: String,
     required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Committee",
   },
   image: {
     type: String,

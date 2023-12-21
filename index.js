@@ -12,6 +12,7 @@ const configRouter = require("./src/routers/config");
 const roleRouter = require("./src/routers/role");
 const facebookRouter = require("./src/routers/facebook");
 const specializationRouter = require("./src/routers/specialization");
+const committeeRouter = require("./src/routers/committee");
 const app = express();
 require("dotenv").config();
 const port = process.env.PORT;
@@ -33,6 +34,7 @@ app.use(orderRouter);
 app.use(configRouter);
 app.use(roleRouter);
 app.use(facebookRouter);
+app.use(committeeRouter);
 app.use(specializationRouter);
 
 app.listen(port, () => {

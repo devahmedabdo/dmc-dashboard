@@ -386,9 +386,18 @@ router.get("/members", auth.admin("members", "manage"), async (req, res) => {
             { $skip: skip },
             { $limit: limit },
             {
+              $lookup: {
+                from: "committees",
+                localField: "committee",
+                foreignField: "_id",
+                as: "committee",
+              },
+            },
+            {
               $project: {
                 _id: 1,
                 name: 1,
+                committee: { $arrayElemAt: ["$committee", 0] },
               },
             },
           ],

@@ -37,7 +37,7 @@ router.get("/postt", async (req, res) => {
     }
     setTimeout(() => {
       return res.send(images || []);
-    }, 2000);
+    }, 11);
   } catch (error) {
     return res.send(error);
   }
@@ -65,7 +65,6 @@ router.post("/remove-bg", async (req, res) => {
 router.get("/remove-bg-credits", async (req, res) => {
   try {
     const config = await Config.findOne({});
-
     const response = await axios.get("https://api.remove.bg/v1.0/account", {
       headers: {
         "X-Api-Key": config.bgRemoverKey,
