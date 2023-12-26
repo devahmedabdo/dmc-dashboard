@@ -92,7 +92,7 @@ const memberSchema = mongoose.Schema({
   status: {
     type: String,
     required: true,
-    default: 0,
+    default: "0",
   },
   // 0 blocked
   // 1 new

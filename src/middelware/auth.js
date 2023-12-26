@@ -30,7 +30,7 @@ const admin = (permission, type) => {
       const decode = jwt.verify(token, process.env.JWT_SECRET);
       const admin = await Admin.findOne({ _id: decode._id, tokens: token });
       if (!admin) {
-        return res.status(403).send("please log in");
+        return res.status(401).send("please log in");
       }
       await admin.populate("role");
       // console.log(admin);
@@ -40,7 +40,7 @@ const admin = (permission, type) => {
         !admin.role.permissions.includes(roles[permission].permissions[type].id)
       ) {
         return res
-          .status(401)
+          .status(402)
           .send("your role doesn't have the permission for this action");
       }
       req.admin = admin;

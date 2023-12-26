@@ -6,7 +6,7 @@ const Member = require("../models/member");
 // all committee
 router.get(
   "/committees",
-  auth.admin("committee", "manage"),
+  auth.admin("committees", "read"),
   async (req, res) => {
     try {
       const page = +req.query.page || 1;
@@ -16,7 +16,7 @@ router.get(
       const committees = await Committee.aggregate([
         {
           $facet: {
-            data: [{ $match: {} }, { $skip: skip }, { $limit: limit }],
+            data: [{ $skip: skip }, { $limit: limit }],
             count: [{ $count: "total" }],
           },
         },
@@ -42,49 +42,43 @@ router.get(
     }
   }
 );
-router.post(
-  "/committee",
-  auth.admin("committee", "add"),
-  // auth.admin(["administrator"]), TODO: uncomment this
-  async (req, res) => {
-    try {
-      const committee = await new Committee(req.body);
-      await committee.save();
-      res.status(200).send(committee);
-    } catch (error) {
-      if (error.name === "ValidationError") {
-        if (error.errors) {
-          const validationErrors = {};
-          for (const field in error.errors) {
-            if (error.errors.hasOwnProperty(field)) {
-              validationErrors[field] = {
-                message: error.errors[field].message,
-              };
-            }
+router.post("/committee", auth.admin("committees", "add"), async (req, res) => {
+  try {
+    const committee = await new Committee(req.body);
+    await committee.save();
+    res.status(200).send(committee);
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      if (error.errors) {
+        const validationErrors = {};
+        for (const field in error.errors) {
+          if (error.errors.hasOwnProperty(field)) {
+            validationErrors[field] = {
+              message: error.errors[field].message,
+            };
           }
-          return res.status(422).send({ errors: validationErrors });
-        } else {
-          return res.status(422).send({ errors: { general: error.message } });
         }
-      } else if (error.code === 11000) {
-        // Duplicate key error
-        const field = Object.keys(error.keyValue)[0];
-        const duplicateError = {
-          [field]: {
-            message: `القيمة موجودة مسبقا `,
-          },
-        };
-        return res.status(422).send({ errors: duplicateError });
+        return res.status(422).send({ errors: validationErrors });
       } else {
-        return res.status(400).send(error);
+        return res.status(422).send({ errors: { general: error.message } });
       }
+    } else if (error.code === 11000) {
+      // Duplicate key error
+      const field = Object.keys(error.keyValue)[0];
+      const duplicateError = {
+        [field]: {
+          message: `القيمة موجودة مسبقا `,
+        },
+      };
+      return res.status(422).send({ errors: duplicateError });
+    } else {
+      return res.status(400).send(error);
     }
   }
-);
+});
 router.patch(
   "/committee/:id",
-  auth.admin("committee", "manage"),
-  // auth.admin(["administrator"]), TODO: uncomment this
+  auth.admin("committees", "write"),
   async (req, res) => {
     try {
       const committee = await Committee.findOne({
@@ -135,16 +129,15 @@ router.patch(
 );
 router.delete(
   "/committee/:id",
-  auth.admin("committee", "delete"),
-  // auth.admin(["administrator"]), TODO: uncomment this,
+  auth.admin("committees", "delete"),
   async (req, res) => {
     const committee = await Committee.findById(req.params.id);
+    if (!committee) {
+      return res.status(404).send({ message: "التخصص لم يعد موجودا" });
+    }
     const members = await Member.find({
       committee: committee._id,
     });
-    if (!committee) {
-      return res.status(404).send("التخصص لم يعد موجودا");
-    }
     if (members.length) {
       return res
         .status(409)
@@ -157,16 +150,12 @@ router.delete(
     res.status(200).send(committee);
   }
 );
-router.get(
-  "/select/committees",
-  auth.admin("committee", "manage"),
-  async (req, res) => {
-    try {
-      const committee = await Committee.find({}, { name: 1, _id: 1 });
-      res.send(committee);
-    } catch (e) {
-      res.status(400).send(e.message);
-    }
+router.get("/select/committees", async (req, res) => {
+  try {
+    const committee = await Committee.find({}, { name: 1, _id: 1 });
+    res.send(committee);
+  } catch (e) {
+    res.status(400).send(e.message);
   }
-);
+});
 module.exports = router;

@@ -16,7 +16,7 @@ router.get(
       const specializations = await Specialization.aggregate([
         {
           $facet: {
-            data: [{ $match: {} }, { $skip: skip }, { $limit: limit }],
+            data: [{ $skip: skip }, { $limit: limit }],
             count: [{ $count: "total" }],
           },
         },
@@ -141,12 +141,12 @@ router.delete(
   auth.admin("specialization", "delete"),
   async (req, res) => {
     const specialization = await Specialization.findById(req.params.id);
+    if (!specialization) {
+      return res.status(404).send({ message: "التخصص لم يعد موجودا" });
+    }
     const collaborators = await Collaborator.find({
       specialization: specialization._id,
     });
-    if (!specialization) {
-      return res.status(404).send("التخصص لم يعد موجودا");
-    }
     if (collaborators.length) {
       return res
         .status(409)

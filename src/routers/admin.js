@@ -5,9 +5,10 @@ const Admin = require("../models/admin");
 const auth = require("../middelware/auth");
 const Member = require("../models/member");
 const jwt = require("jsonwebtoken");
+const mail = require("../statics/mail");
 
 // get all admins
-router.get("/admins", auth.admin("users", "manage"), async (req, res) => {
+router.get("/admins", auth.admin("users", "read"), async (req, res) => {
   try {
     const page = +req.query.page || 1;
     const limit = +process.env.LIMIT;
@@ -78,7 +79,7 @@ router.post("/admin", auth.admin("users", "add"), async (req, res) => {
   }
 });
 // update admin
-router.patch("/admin/:id", auth.admin("users", "manage"), async (req, res) => {
+router.patch("/admin/:id", auth.admin("users", "write"), async (req, res) => {
   try {
     const admin = await Admin.findOne({
       _id: req.params.id,
@@ -133,25 +134,74 @@ router.delete("/admin/:id", auth.admin("users", "delete"), async (req, res) => {
     res.status(400).send(e);
   }
 });
-// get admin TODO: not important
-router.get("/admin/:id", auth.admin("users", "manage"), async (req, res) => {
+// admin login
+router.post("/admin/login", async (req, res) => {
   try {
-    const admin = await Admin.findOne({
-      _id: req.params.id,
-    });
-    if (!admin) {
-      return res.status(404).send(`admin dosn't exist`);
-    }
-    res.status(200).send(admin);
+    console.log(req.body);
+    const admin = await Admin.findByCredentials(
+      req.body.email,
+      req.body.password
+    );
+    const token = await admin.generateToken();
+
+    await admin.populate("role");
+    //
+    // Function to filter permissions based on admin role permissions
+    const filterPermissions = (permissions) => {
+      const filteredPermissions = Object.fromEntries(
+        Object.entries(permissions).filter(([key, { id }]) =>
+          admin.role.permissions.includes(id)
+        )
+      );
+
+      return Object.keys(filteredPermissions).length > 0
+        ? filteredPermissions
+        : null;
+    };
+
+    // Filter each role based on admin role permissions
+    const permissions = Object.entries(roles).reduce(
+      (result, [key, { title, permissions }]) => {
+        const filteredPermissions = filterPermissions(permissions);
+        if (filteredPermissions) {
+          result[key] = {
+            title,
+            permissions: filteredPermissions,
+          };
+        }
+        return result;
+      },
+      {}
+    );
+
+    //
+    res.status(200).send({ admin, permissions, token });
   } catch (e) {
-    res.status(400).send(e);
+    res.status(401).send(e.message);
   }
 });
-
+// admin logout
+router.delete("/adminLogout", async (req, res) => {
+  try {
+    const token = req.header("Authorization").replace("Bearer ", "");
+    const decode = jwt.verify(token, process.env.JWT_SECRET);
+    const admin = await Admin.findOne({ _id: decode._id, tokens: token });
+    if (!admin) {
+      return res.status(401).send({ message: "من فضلك قم بتسجيل الدخول اولا" });
+    }
+    admin.tokens = admin.tokens.filter((ele) => {
+      return ele != token;
+    });
+    await admin.save();
+    res.status(200).send();
+  } catch (e) {
+    res.status(405).send(e);
+  }
+});
 // end admin sessions (logout)
 router.delete(
-  "/admin/sessions/:id",
-  auth.admin("users", "manage"),
+  "/adminSessions/:id",
+  auth.admin("users", "write"),
   async (req, res) => {
     try {
       const admin = await Admin.findOne({
@@ -168,54 +218,21 @@ router.delete(
     }
   }
 );
-
-// admin login
-router.post("/admin/login", async (req, res) => {
-  try {
-    console.log(req.body);
-    const admin = await Admin.findByCredentials(
-      req.body.email,
-      req.body.password
-    );
-    const token = await admin.generateToken();
-    res.status(200).send({ admin, token });
-  } catch (e) {
-    res.status(401).send(e.message);
-  }
-});
-// admin logout
-router.delete(
-  "/admin/logout",
-  auth.admin("users", "manage"),
-  async (req, res) => {
-    try {
-      req.admin.tokens = req.admin.tokens.filter((ele) => {
-        return ele != req.token;
-      });
-      await req.admin.save();
-      res.status(200).send();
-    } catch (e) {
-      res.status(500).send(e);
-    }
-  }
-);
-
 // request admin reset Password
 router.post("/admin/reset-password", async (req, res) => {
-  // need email
   try {
     const admin = await Admin.findOne({
       email: req.body.email,
     });
     if (!admin) {
-      return res.status(404).send(req.body);
-      // return res.status(404).send(`admin dosn't exist`);
+      return res.status(404).send({ message: "هذا البريد غير موجود" });
     }
-    // if admin
     const token = await admin.generateToken();
-
-    // send this token to email via function TODO:
-    res.status(200).send({ token: token });
+    admin.token = token;
+    mail.sendEmail(
+      mail.getEmails("users", "resetPassword", admin, admin.email)
+    );
+    res.status(200).send();
   } catch (e) {
     if (e.name == "ValidationError") {
       return res.status(422).send(e.errors);
@@ -225,23 +242,17 @@ router.post("/admin/reset-password", async (req, res) => {
 });
 // admin change Password
 router.post("/admin/change-password/:token", async (req, res) => {
-  // need new password and confirm it and token
-
   try {
     const token = req.params.token;
-
-    console.log(token);
     const decode = jwt.verify(token, process.env.JWT_SECRET);
     const admin = await Admin.findOne({ _id: decode._id, tokens: token });
     if (!admin) {
-      return res.status(404).send(`admin dosn't exist`);
+      return res.status(404).send({ message: "هذا المستحدم غير موجود" });
     }
     if (req.body.newPassword != req.body.confirmNewPassword) {
-      return res.status(422).send(`new passwords dosn't match`);
+      return res.status(409).send({ message: "كلمات المرور غير متطابقة" });
     }
     admin.password = req.body.newPassword;
-    console.log(admin);
-
     await admin.save();
     res.status(201).send(admin);
   } catch (e) {
@@ -288,14 +299,14 @@ router.post("/admin/member", auth.admin("members", "add"), async (req, res) => {
 });
 router.get(
   "/admin/member/:id",
-  auth.admin("members", "manage"),
+  auth.admin("members", "read"),
   async (req, res) => {
     try {
       const member = await Member.findOne({
         _id: req.params.id,
       });
       if (!member) {
-        return res.status(404).send(`Member dosn't exist`);
+        return res.status(404).send({ message: "العضو غير موجود" });
       }
       res.status(200).send(member);
     } catch (e) {
@@ -305,15 +316,17 @@ router.get(
 );
 router.patch(
   "/admin/member/:id",
-  auth.admin("members", "manage"),
+  auth.admin("members", "write"),
   async (req, res) => {
     try {
       const member = await Member.findOne({
         _id: req.params.id,
       });
       if (!member) {
-        return res.status(404).send(`Member dosn't exist`);
+        return res.status(404).send({ message: "العضو غير موجود" });
       }
+
+      let oldStatus = member.status;
 
       const updates = Object.keys(req.body);
       updates.forEach((e) => {
@@ -323,7 +336,16 @@ router.patch(
         member[e] = req.body[e];
       });
       await member.save();
-      // TODO: Send Email to Member
+      if (oldStatus != member.status) {
+        mail.sendEmail(
+          mail.getEmails(
+            "members",
+            `${oldStatus}${member.status}`,
+            member,
+            member.email
+          )
+        );
+      }
       res.status(200).send(member);
     } catch (error) {
       if (error.name === "ValidationError") {
@@ -345,7 +367,7 @@ router.patch(
         const field = Object.keys(error.keyValue)[0];
         const duplicateError = {
           [field]: {
-            message: `The ${field} '${error.keyValue[field]}' is already in use.`,
+            message: `القيمة موجودة بالفعل`,
           },
         };
         return res.status(422).send({ errors: duplicateError });
@@ -363,6 +385,9 @@ router.delete(
       const member = await Member.findOneAndDelete({
         _id: req.params.id,
       });
+      if (!member) {
+        return res.status(404).send({ message: "العضو غير موجود" });
+      }
       res.status(200).send(member);
     } catch (e) {
       res.status(400).send(e);
@@ -370,14 +395,13 @@ router.delete(
   }
 );
 // get all members this for admin
-router.get("/members", auth.admin("members", "manage"), async (req, res) => {
+router.get("/members", auth.admin("members", "read"), async (req, res) => {
   try {
     const page = +req.query.page || 1;
     const limit = +process.env.LIMIT;
     const skip = (page - 1) * limit;
     const filter = req.query;
     delete filter.page;
-    console.log(filter);
     const members = await Member.aggregate([
       { $match: filter },
       {
@@ -419,7 +443,7 @@ router.get("/members", auth.admin("members", "manage"), async (req, res) => {
 });
 router.get(
   "/select/members",
-  auth.admin("members", "manage"),
+  auth.admin("members", "read"),
   async (req, res) => {
     try {
       const members = await Member.find({}, { name: 1, _id: 1 });
@@ -429,10 +453,17 @@ router.get(
     }
   }
 );
-router.get("/", async (req, res) => {
+
+// get admin TODO: not important
+router.get("/admin/:id", auth.admin("users", "read"), async (req, res) => {
   try {
-    console.log("asd");
-    res.send("Hellow world");
+    const admin = await Admin.findOne({
+      _id: req.params.id,
+    });
+    if (!admin) {
+      return res.status(404).send(`admin dosn't exist`);
+    }
+    res.status(200).send(admin);
   } catch (e) {
     res.status(400).send(e);
   }

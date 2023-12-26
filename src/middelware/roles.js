@@ -20,8 +20,8 @@ const roles = {
       },
     },
   },
-  roles: {
-    title: "الصلاحيات",
+  members: {
+    title: "الاعضاء",
     permissions: {
       read: {
         name: "قراءة",
@@ -37,6 +37,90 @@ const roles = {
       },
       delete: {
         id: 107,
+        name: "حذف",
+      },
+    },
+  },
+  roles: {
+    title: "الصلاحيات",
+    permissions: {
+      read: {
+        name: "قراءة",
+        id: 108,
+      },
+      edit: {
+        id: 109,
+        name: "تعديل",
+      },
+      add: {
+        id: 110,
+        name: "اضافة",
+      },
+      delete: {
+        id: 111,
+        name: "حذف",
+      },
+    },
+  },
+  collaborators: {
+    title: "التعاقدات",
+    permissions: {
+      read: {
+        name: "قراءة",
+        id: 112,
+      },
+      edit: {
+        id: 113,
+        name: "تعديل",
+      },
+      add: {
+        id: 114,
+        name: "اضافة",
+      },
+      delete: {
+        id: 115,
+        name: "حذف",
+      },
+    },
+  },
+  committees: {
+    title: "اللجان",
+    permissions: {
+      read: {
+        name: "قراءة",
+        id: 116,
+      },
+      edit: {
+        id: 117,
+        name: "تعديل",
+      },
+      add: {
+        id: 118,
+        name: "اضافة",
+      },
+      delete: {
+        id: 119,
+        name: "حذف",
+      },
+    },
+  },
+  committees: {
+    title: "اللجان",
+    permissions: {
+      read: {
+        name: "قراءة",
+        id: 116,
+      },
+      edit: {
+        id: 117,
+        name: "تعديل",
+      },
+      add: {
+        id: 118,
+        name: "اضافة",
+      },
+      delete: {
+        id: 119,
         name: "حذف",
       },
     },
