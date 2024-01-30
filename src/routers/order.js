@@ -93,6 +93,13 @@ router.get(
 );
 router.post("/order", async (req, res) => {
   try {
+    const config = await Config.findOne({});
+    if (!config || !config.acceptorder) {
+      return res.status(409).send({
+        message: "عذرا استقبال الطلبات موقوف حاليا",
+      });
+    }
+
     const order = await new Order(req.body);
     await order.save();
     //  TODO: send Email to user

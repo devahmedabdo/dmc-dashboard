@@ -146,6 +146,7 @@ router.post("/admin/login", async (req, res) => {
 
     await admin.populate("role");
     //
+    console.log(admin);
     // Function to filter permissions based on admin role permissions
     const filterPermissions = (permissions) => {
       const filteredPermissions = Object.fromEntries(

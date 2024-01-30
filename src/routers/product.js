@@ -37,43 +37,49 @@ router.get("/products", async (req, res) => {
     res.status(400).send(e.message);
   }
 });
-router.get("/panel/products", async (req, res) => {
-  try {
-    const page = +req.query.page || 1;
-    const limit = +process.env.LIMIT;
-    const skip = (page - 1) * limit;
+router.get(
+  "/panel/products",
+  auth.admin("products", "read"),
 
-    const products = await Product.aggregate([
-      {
-        $facet: {
-          data: [
-            {
-              $match: {
-                status: req.query.status || 0,
+  async (req, res) => {
+    try {
+      const page = +req.query.page || 1;
+      const limit = +process.env.LIMIT;
+      const skip = (page - 1) * limit;
+
+      const products = await Product.aggregate([
+        {
+          $facet: {
+            data: [
+              {
+                $match: {
+                  status: req.query.status || 0,
+                },
               },
-            },
-            { $skip: skip },
-            { $limit: limit },
-          ],
-          count: [{ $count: "count" }],
+              { $skip: skip },
+              { $limit: limit },
+            ],
+            count: [{ $count: "count" }],
+          },
         },
-      },
-    ]);
-    res.send({
-      items: products[0].data,
-      pagination: {
-        page: page,
-        limit: limit,
-        total: products[0].count.length ? products[0].count[0].count : 0,
-      },
-    });
-  } catch (e) {
-    res.status(400).send(e.message);
+      ]);
+      res.send({
+        items: products[0].data,
+        pagination: {
+          page: page,
+          limit: limit,
+          total: products[0].count.length ? products[0].count[0].count : 0,
+        },
+      });
+    } catch (e) {
+      res.status(400).send(e.message);
+    }
   }
-});
+);
 router.post(
   "/product",
-  // auth.admin(["administrator"]), TODO: uncomment this
+  auth.admin("products", "add"),
+
   async (req, res) => {
     try {
       const product = await new Product(req.body);
@@ -111,7 +117,8 @@ router.post(
 );
 router.patch(
   "/product/:id",
-  // auth.admin(["administrator"]), TODO: uncomment this
+  auth.admin("products", "edit"),
+
   async (req, res) => {
     try {
       const product = await Product.findOne({ _id: req.params.id });
@@ -159,7 +166,7 @@ router.patch(
 );
 router.delete(
   "/product/:id",
-  // auth.admin(["administrator"]), TODO: uncomment this,
+  auth.admin("products", "delete"),
   async (req, res) => {
     const product = await Product.findOneAndDelete({
       _id: req.params.id,

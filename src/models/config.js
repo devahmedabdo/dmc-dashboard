@@ -5,11 +5,31 @@ const configSchema = mongoose.Schema(
     visits: {
       type: Number,
     },
-    links: [],
-    bgRemoverKey: {
-      type: String,
-      trim: true,
+    acceptOrder: {
+      type: Boolean,
+      default: false,
     },
+    acceptSignup: {
+      type: Boolean,
+      default: false,
+    },
+    links: [
+      {
+        label: {
+          type: String,
+          required: true,
+        },
+        icon: {
+          type: String,
+          required: true,
+        },
+        value: {
+          type: String,
+          required: true,
+        },
+        _id: false,
+      },
+    ],
   }
   // { timestamps: true }
 );

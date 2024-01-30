@@ -148,8 +148,6 @@ function getEmails(type, data, email) {
     <span>لجنة الدلنجات الطبية</span>
     <a class="powerd" href="">Powerd By Ahmed Abdo</a>
   </div>
-
-
 </body></html>`,
         email: data,
       },

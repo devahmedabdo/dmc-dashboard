@@ -3,12 +3,19 @@ const router = express.Router();
 
 const Member = require("../models/member");
 const auth = require("../middelware/auth");
+const Config = require("../models/config");
 
 // member signup
 router.post("/member", async (req, res) => {
   try {
-    req.body.status = false;
-    req.body.new = true;
+    req.body.status = "1";
+    const config = await Config.findOne({});
+    if (!config || !config.acceptSignup) {
+      return res.status(409).send({
+        message: "عذرا تسجيل الاعضاء الجدد موقوف حاليا",
+      });
+    }
+
     const member = await new Member(req.body);
     await member.save();
     // TODO: send mail to admin

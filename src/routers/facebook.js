@@ -42,38 +42,38 @@ router.get("/postt", async (req, res) => {
     return res.send(error);
   }
 });
-const Config = require("../models/config");
+// const Config = require("../models/config");
 
-router.post("/remove-bg", async (req, res) => {
-  try {
-    const image_file = req.body.base64Image;
-    const config = await Config.findOne({});
-    const response = await axios.post(
-      "https://api.remove.bg/v1.0/removebg",
-      { image_file: image_file },
-      {
-        headers: {
-          "X-Api-Key": config.bgRemoverKey,
-        },
-      }
-    );
-    res.status(201).send(response);
-  } catch (e) {
-    res.status(400).send(e);
-  }
-});
-router.get("/remove-bg-credits", async (req, res) => {
-  try {
-    const config = await Config.findOne({});
-    const response = await axios.get("https://api.remove.bg/v1.0/account", {
-      headers: {
-        "X-Api-Key": config.bgRemoverKey,
-      },
-    });
-    res.status(200).send(response.data);
-  } catch (e) {
-    res.status(400).send(e.message);
-  }
-});
+// router.post("/remove-bg", async (req, res) => {
+//   try {
+//     const image_file = req.body.base64Image;
+//     const config = await Config.findOne({});
+//     const response = await axios.post(
+//       "https://api.remove.bg/v1.0/removebg",
+//       { image_file: image_file },
+//       {
+//         headers: {
+//           "X-Api-Key": config.bgRemoverKey,
+//         },
+//       }
+//     );
+//     res.status(201).send(response);
+//   } catch (e) {
+//     res.status(400).send(e);
+//   }
+// });
+// router.get("/remove-bg-credits", async (req, res) => {
+//   try {
+//     const config = await Config.findOne({});
+//     const response = await axios.get("https://api.remove.bg/v1.0/account", {
+//       headers: {
+//         "X-Api-Key": config.bgRemoverKey,
+//       },
+//     });
+//     res.status(200).send(response.data);
+//   } catch (e) {
+//     res.status(400).send(e.message);
+//   }
+// });
 
 module.exports = router;

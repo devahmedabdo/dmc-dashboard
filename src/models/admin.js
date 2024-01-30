@@ -52,11 +52,11 @@ adminSchema.pre("save", async function () {
 adminSchema.statics.findByCredentials = async function (email, password) {
   const admin = await Admin.findOne({ email });
   if (!admin) {
-    throw new Error("Email is Wrong");
+    throw new Error("خطأ في البريد الالكترونى او كلمة المرور");
   }
   const isMatch = await bcryptjs.compare(password, admin.password);
   if (!isMatch) {
-    throw new Error("Password is Wrong");
+    throw new Error("خطأ في البريد الالكترونى او كلمة المرور");
   }
   return admin;
 };

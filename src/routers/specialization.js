@@ -6,7 +6,7 @@ const auth = require("../middelware/auth");
 // all specialization
 router.get(
   "/specializations",
-  auth.admin("specialization", "manage"),
+  auth.admin("specializations", "manage"),
   async (req, res) => {
     try {
       const page = +req.query.page || 1;
@@ -47,7 +47,7 @@ router.get(
 );
 router.post(
   "/specialization",
-  auth.admin("specialization", "add"),
+  auth.admin("specializations", "add"),
   // auth.admin(["administrator"]), TODO: uncomment this
   async (req, res) => {
     try {
@@ -86,7 +86,7 @@ router.post(
 );
 router.patch(
   "/specialization/:id",
-  auth.admin("specialization", "manage"),
+  auth.admin("specializations", "manage"),
   // auth.admin(["administrator"]), TODO: uncomment this *ngIf="!special.collaborators.length"
   async (req, res) => {
     try {
@@ -138,7 +138,7 @@ router.patch(
 );
 router.delete(
   "/specialization/:id",
-  auth.admin("specialization", "delete"),
+  auth.admin("specializations", "delete"),
   async (req, res) => {
     const specialization = await Specialization.findById(req.params.id);
     if (!specialization) {
@@ -161,7 +161,7 @@ router.delete(
 );
 router.get(
   "/select/specializations",
-  auth.admin("specialization", "manage"),
+  auth.admin("specializations", "manage"),
   async (req, res) => {
     try {
       const specialization = await Specialization.find({}, { name: 1, _id: 1 });
