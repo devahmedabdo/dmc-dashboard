@@ -39,8 +39,7 @@ router.get("/products", async (req, res) => {
 });
 router.get(
   "/panel/products",
-  auth.admin("products", "read"),
-
+  auth.admin("gallery", "read"),
   async (req, res) => {
     try {
       const page = +req.query.page || 1;
@@ -78,7 +77,7 @@ router.get(
 );
 router.post(
   "/product",
-  auth.admin("products", "add"),
+  auth.admin("gallery", "add"),
 
   async (req, res) => {
     try {
@@ -117,7 +116,7 @@ router.post(
 );
 router.patch(
   "/product/:id",
-  auth.admin("products", "edit"),
+  auth.admin("gallery", "edit"),
 
   async (req, res) => {
     try {
@@ -166,7 +165,7 @@ router.patch(
 );
 router.delete(
   "/product/:id",
-  auth.admin("products", "delete"),
+  auth.admin("gallery", "delete"),
   async (req, res) => {
     const product = await Product.findOneAndDelete({
       _id: req.params.id,

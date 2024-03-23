@@ -84,7 +84,7 @@ router.patch(
       const committee = await Committee.findOne({
         _id: req.params.id,
       });
-      console.log(committee);
+
       if (!committee) {
         return res.status(404).send("no committee founded");
       }
@@ -150,6 +150,7 @@ router.delete(
     res.status(200).send(committee);
   }
 );
+
 router.get("/select/committees", async (req, res) => {
   try {
     const committee = await Committee.find({}, { name: 1, _id: 1 });

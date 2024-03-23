@@ -30,7 +30,7 @@ router.get("/awareness", async (req, res) => {
 });
 router.post(
   "/awareness",
-  // auth.admin(["administrator"]), TODO: uncomment this
+  // auth.admin(["administrator"]),// TODO: uncomment this
   async (req, res) => {
     try {
       const awareness = await new Awareness(req.body);
@@ -47,7 +47,7 @@ router.patch(
   async (req, res) => {
     try {
       const awareness = await Awareness.findOne({ _id: req.params.id });
-      console.log(awareness);
+
       if (!awareness) {
         return res.status(404).send("no awareness founded");
       }

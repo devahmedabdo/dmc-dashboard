@@ -6,7 +6,7 @@ const auth = require("../middelware/auth");
 // all specialization
 router.get(
   "/specializations",
-  auth.admin("specializations", "manage"),
+  auth.admin("specializations", "read"),
   async (req, res) => {
     try {
       const page = +req.query.page || 1;
@@ -86,14 +86,14 @@ router.post(
 );
 router.patch(
   "/specialization/:id",
-  auth.admin("specializations", "manage"),
+  auth.admin("specializations", "write"),
   // auth.admin(["administrator"]), TODO: uncomment this *ngIf="!special.collaborators.length"
   async (req, res) => {
     try {
       const specialization = await Specialization.findOne({
         _id: req.params.id,
       });
-      console.log(specialization);
+
       if (!specialization) {
         return res.status(404).send("no specialization founded");
       }
@@ -161,7 +161,7 @@ router.delete(
 );
 router.get(
   "/select/specializations",
-  auth.admin("specializations", "manage"),
+  auth.admin("specializations", "read"),
   async (req, res) => {
     try {
       const specialization = await Specialization.find({}, { name: 1, _id: 1 });

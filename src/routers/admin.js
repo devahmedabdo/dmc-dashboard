@@ -137,7 +137,6 @@ router.delete("/admin/:id", auth.admin("users", "delete"), async (req, res) => {
 // admin login
 router.post("/admin/login", async (req, res) => {
   try {
-    console.log(req.body);
     const admin = await Admin.findByCredentials(
       req.body.email,
       req.body.password
@@ -146,7 +145,7 @@ router.post("/admin/login", async (req, res) => {
 
     await admin.populate("role");
     //
-    console.log(admin);
+
     // Function to filter permissions based on admin role permissions
     const filterPermissions = (permissions) => {
       const filteredPermissions = Object.fromEntries(
@@ -196,6 +195,7 @@ router.delete("/adminLogout", async (req, res) => {
     await admin.save();
     res.status(200).send();
   } catch (e) {
+    console.log(e);
     res.status(405).send(e);
   }
 });

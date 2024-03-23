@@ -6,7 +6,7 @@ const roles = {
         name: "قراءة",
         id: 100,
       },
-      edit: {
+      write: {
         id: 101,
         name: "تعديل",
       },
@@ -27,7 +27,7 @@ const roles = {
         name: "قراءة",
         id: 104,
       },
-      edit: {
+      write: {
         id: 105,
         name: "تعديل",
       },
@@ -48,7 +48,7 @@ const roles = {
         name: "قراءة",
         id: 108,
       },
-      edit: {
+      write: {
         id: 109,
         name: "تعديل",
       },
@@ -69,7 +69,7 @@ const roles = {
         name: "قراءة",
         id: 112,
       },
-      edit: {
+      write: {
         id: 113,
         name: "تعديل",
       },
@@ -90,7 +90,7 @@ const roles = {
         name: "قراءة",
         id: 116,
       },
-      edit: {
+      write: {
         id: 117,
         name: "تعديل",
       },
@@ -111,7 +111,7 @@ const roles = {
         name: "قراءة",
         id: 120,
       },
-      edit: {
+      write: {
         id: 121,
         name: "تعديل",
       },
@@ -132,7 +132,7 @@ const roles = {
         name: "قراءة",
         id: 124,
       },
-      edit: {
+      write: {
         id: 125,
         name: "تعديل",
       },
@@ -153,7 +153,7 @@ const roles = {
         name: "قراءة",
         id: 128,
       },
-      edit: {
+      write: {
         id: 129,
         name: "تعديل",
       },
@@ -175,7 +175,7 @@ const roles = {
         name: "قراءة",
         id: 131,
       },
-      edit: {
+      write: {
         id: 132,
         name: "تعديل",
       },
@@ -196,7 +196,7 @@ const roles = {
         name: "قراءة",
         id: 135,
       },
-      edit: {
+      write: {
         id: 136,
         name: "تعديل",
       },
@@ -213,7 +213,7 @@ const roles = {
         name: "قراءة",
         id: 138,
       },
-      edit: {
+      write: {
         id: 139,
         name: "تعديل",
       },
