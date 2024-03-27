@@ -1,4 +1,5 @@
-function getEmails(type, data, email) {
+function getEmails(type, data) {
+  console.log(data);
   let emails = {
     users: {
       resetPassword: {
@@ -131,7 +132,7 @@ function getEmails(type, data, email) {
     <br>
     
     <h1>
-      مرحبا <span class="main">${data.data.name}</span>
+      مرحبا <span class="main">${data.name}</span>
     </h1>
     
 
@@ -152,10 +153,188 @@ function getEmails(type, data, email) {
         email: data,
       },
     },
+    orderRecieved: `
+    <!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email</title>
+</head>
+
+<body
+  style="text-align: center; font-family: 'Noto Kufi Arabic', sans-serif; border-top: 100px solid #00bde7; background-color: #ebebeb; border-radius: 10px;">
+
+  <table
+    style="max-width: 600px; width: 90%; margin: auto; margin-top: -50px; margin-bottom: 10px; border-radius: 10px; background-color: #ffffff; border-collapse: collapse;">
+    <tr>
+      <td style="padding: 50px 20px; text-align: left;">
+        <a href=""><img style="width: 130px;" src="${
+          process.env.LIVE_CPANEL_URL
+        }assets/email/logo.png" alt="Logo"></a>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 20px;">
+        <img style="min-width: 300px; max-width: 250px; width: 30%;"
+          src="${
+            process.env.LIVE_CPANEL_URL
+          }assets/email/order-recieved.png" alt="Order Received">
+        <h1  >تم استقبال طلبك</h1>
+        <h2  >مرحبا <span style="color: #018baa;">${data.name}</span></h2>
+        <p style="max-width: 500px; margin: 20px auto; color: #656565;"> 
+
+        سعيدون بزيارتك لموقعنا والطلب منه 
+سيتم تجهيز طلبك بكل حب واخباركم عند الانتهاء منه 
+ونتمنى ألا تكون اخر مرة
+
+        </p>
+        <table dir="rtl" style="width: 100%; text-align: center;">
+          <thead style="background-color: #018baa; color: white;">
+            <tr>
+              <th>اسم المنتج</th>
+              <th>السعر</th>
+              <th>الكمية</th>
+            </tr>
+          </thead>
+          <tbody>
+                  ${creatOrderTabel(data.products)}
+
+          </tbody>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 20px;">
+        <p>Delengat Medical Committee | لجنة الدلنجات الطبية</p>
+        <p><a href="${
+          process.env.DEV_CONTACT
+        }" style="color: #018baa; font-weight: 700;">Powerd By Ahmed Abdo</a></p>
+      </td>
+    </tr>
+  </table>
+
+</body>
+
+</html>
+     `,
+    newOrder: `
+    <!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email</title>
+</head>
+
+<body
+  style="text-align: center; font-family: 'Noto Kufi Arabic', sans-serif; border-top: 100px solid #00bde7; background-color: #ebebeb; border-radius: 10px;">
+
+  <table
+    style="max-width: 600px; width: 90%; margin: auto; margin-top: -50px; margin-bottom: 10px; border-radius: 10px; background-color: #ffffff; border-collapse: collapse;">
+    <tr>
+      <td style="padding: 50px 20px; text-align: left;">
+        <a href=""><img style="width: 130px;" src="${process.env.LIVE_CPANEL_URL}assets/email/logo.png" alt="Logo"></a>
+      </td>
+    </tr>
+     <tr>
+      <td style="padding: 20px;">
+        <img class="email-img" src="${process.env.LIVE_CPANEL_URL}assets/email/newOrder.png"
+          style="width: 30%; min-width:300px; max-width: 350px;" alt="New Order">
+        <h1>هناك طلب جديد</h1>
+        <h2>باسم <span  style="color: #018baa;">${data.name}</span></h2>
+        <p style="max-width: 500px; margin: 20px auto; color: #656565ee;">يرجى مراجعته</p>
+        <a href="${process.env.LIVE_CPANEL_URL}gallery/orders"
+          style="all: unset; display: block; width: fit-content; margin: auto; padding: 8px 16px; background-color: #018baa; color: white; box-shadow: 0px 5px 6px #0000002e; border-radius: 8px; cursor: pointer;">الطلبات</a>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 20px;">
+        <p>Delengat Medical Committee | لجنة الدلنجات الطبية</p>
+        <p><a href="${process.env.DEV_CONTACT}" style="color: #018baa; font-weight: 700;">Powerd By Ahmed Abdo</a></p>
+      </td>
+    </tr>
+  </table>
+
+</body>
+
+</html>
+     `,
+    orderDone: `
+    <!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email</title>
+</head>
+
+<body
+  style="text-align: center; font-family: 'Noto Kufi Arabic', sans-serif; border-top: 100px solid #00bde7; background-color: #ebebeb; border-radius: 10px;">
+
+  <table
+    style="max-width: 600px; width: 90%; margin: auto; margin-top: -50px; margin-bottom: 10px; border-radius: 10px; background-color: #ffffff; border-collapse: collapse;">
+    <tr>
+      <td style="padding: 50px 20px; text-align: left;">
+        <a href=""><img style="width: 130px;" src="${process.env.LIVE_CPANEL_URL}assets/email/logo.png" alt="Logo"></a>
+      </td>
+    </tr>
+        <tr>
+      <td style="padding: 20px;">
+        <h1>مرحبا <span style="color: #018baa;">${data.name} </span></h1>
+        <img src="${process.env.LIVE_CPANEL_URL}assets/email/orderOnTheWay.png" style="width: 30%; min-width: 300px; max-width: 350px;">
+        <p style="max-width: 500px; margin: 20px auto; color: #656565ee;">طلبك في الطريق</p>
+        <table dir="rtl" style="width: 100%; text-align: center; margin-top:16px">
+          <thead style="background-color: #018baa; color: white;">
+            <tr>
+              <th>العنوان</th>
+              <th>رقم الهاتف</th>
+              <th>رقم الهاتف الاحتياطي</th>
+            </tr>
+          </thead>
+          <tbody>
+          
+                <tr>
+                <td>${data.city} - ${data.street}  </td>
+                <td>${data.phone}</td>
+                <td>${data.phone_2}</td>
+                </tr>
+
+          </tbody>
+        </table>
+        </td>
+    </tr>
+
+    <tr>
+      <td style="padding: 20px;">
+        <p>Delengat Medical Committee | لجنة الدلنجات الطبية</p>
+        <p><a href="${process.env.DEV_CONTACT}" style="color: #018baa; font-weight: 700;">Powerd By Ahmed Abdo</a></p>
+      </td>
+    </tr>
+  </table>
+
+</body>
+
+</html>
+     `,
+
     orders: {},
     members: {},
   };
   return emails[type];
 }
-
-module.exports = getEmails;
+function creatOrderTabel(array) {
+  let tabel = "";
+  array.forEach((prod) => {
+    tabel += `<tr><td>${prod.product.name}</td><td>${prod.product.price}</td><td>${prod.total}</td></tr>
+    `;
+  });
+  return tabel;
+}
+module.exports = { getEmails };

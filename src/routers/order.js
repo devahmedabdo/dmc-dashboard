@@ -2,6 +2,10 @@ const express = require("express");
 const router = express.Router();
 const Order = require("../models/order");
 const auth = require("../middelware/auth");
+const Config = require("../models/config");
+const mail = require("../statics/mail");
+const emails = require("../statics/emailMessages");
+
 // all Products
 router.get(
   "/orders",
@@ -94,17 +98,24 @@ router.get(
 router.post("/order", async (req, res) => {
   try {
     const config = await Config.findOne({});
-    if (!config || !config.acceptorder) {
+    if (!config || !config.acceptOrder) {
       return res.status(409).send({
         message: "عذرا استقبال الطلبات موقوف حاليا",
       });
     }
-
     const order = await new Order(req.body);
+    for (let i = 0; i < order.products.length; i++) {
+      await order.populate("products.product");
+    }
     await order.save();
-    //  TODO: send Email to user
-    res.status(200).send(order);
+
+    mail
+      .sendEmail("newOrder", order, "devahmedabdo@gmail.com")
+      .then((data) => {});
+
+    res.status(200).send(emails.getEmails("orderRecieved", order));
   } catch (e) {
+    console.log(e);
     if (e.name == "ValidationError") {
       return res.status(422).send(e.errors);
     }
@@ -120,6 +131,12 @@ router.patch("/order/:id", auth.admin("orders", "write"), async (req, res) => {
     // TODO: send email to user
     order.status = req.body.status;
     await order.save();
+    if (order.status == 1) {
+      mail.sendEmail("orderRecieved", order, order.email).then((data) => {});
+    }
+    if (order.status == 2) {
+      mail.sendEmail("orderDone", order, order.email).then((data) => {});
+    }
     res.status(200).send({
       order,
     });
