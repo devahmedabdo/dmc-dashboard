@@ -15,7 +15,7 @@ router.get("/products", async (req, res) => {
           data: [
             {
               $match: {
-                status: 1,
+                status: "1",
               },
             },
             { $skip: skip },

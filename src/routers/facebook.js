@@ -3,14 +3,12 @@ const router = express.Router();
 const puppeteer = require("puppeteer");
 const axios = require("axios");
 
-router.get("/postt", async (req, res) => {
+router.get("/post", async (req, res) => {
   try {
     const url = req.query.url;
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
-
     await page.goto(url, { waitUntil: "networkidle0" });
-
     const images = await page.evaluate(() => {
       // Extract images using selectors or other methods
       const imageElements = document.querySelectorAll("img");
@@ -21,8 +19,6 @@ router.get("/postt", async (req, res) => {
         (src) => src && src.startsWith("https://scontent")
       );
     });
-
-    // console.log(postInfo); // Display retrieved post information
     await browser.close();
     return res.send(images || []);
   } catch (error) {
