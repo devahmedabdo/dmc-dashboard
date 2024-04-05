@@ -6,7 +6,7 @@ const axios = require("axios");
 router.get("/post", async (req, res) => {
   try {
     const url = req.query.url;
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({ headless: "new" });
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: "networkidle0" });
     const images = await page.evaluate(() => {
