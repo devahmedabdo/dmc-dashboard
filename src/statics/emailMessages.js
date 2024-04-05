@@ -294,18 +294,26 @@ function getEmails(type, data) {
           <thead style="background-color: #018baa; color: white;">
             <tr>
               <th>العنوان</th>
+            </tr>
+          </thead>
+          <tbody>
+                <tr>
+                <td>${data.city} - ${data.street}  </td>
+                </tr>
+          </tbody>
+        </table>
+        <table dir="rtl" style="width: 100%; text-align: center; margin-top:16px">
+          <thead style="background-color: #018baa; color: white;">
+            <tr>
               <th>رقم الهاتف</th>
               <th>رقم الهاتف الاحتياطي</th>
             </tr>
           </thead>
           <tbody>
-          
                 <tr>
-                <td>${data.city} - ${data.street}  </td>
                 <td>${data.phone}</td>
                 <td>${data.phone_2}</td>
                 </tr>
-
           </tbody>
         </table>
         </td>
