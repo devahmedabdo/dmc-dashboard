@@ -41,6 +41,7 @@ const memberSchema = mongoose.Schema({
       }
     },
   },
+
   joinDate: {
     type: String,
     trim: true,
@@ -68,7 +69,7 @@ const memberSchema = mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    minLength: 8,
+    // minLength: 8,
     // validate(value) {
     //   let strongPassword = new RegExp(
     //     "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])"
@@ -124,6 +125,7 @@ memberSchema.pre("save", async function () {
   }
 });
 memberSchema.statics.findByCredentials = async function (email, password) {
+  console.log(email);
   const member = await Member.findOne({ email });
   if (!member) {
     throw new Error("please check your email or password");

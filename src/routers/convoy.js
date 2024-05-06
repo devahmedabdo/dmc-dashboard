@@ -47,7 +47,6 @@ router.get("/activeConvoys", async (req, res) => {
           status: "1",
         },
       },
-
       {
         $facet: {
           data: [
@@ -69,33 +68,35 @@ router.get("/activeConvoys", async (req, res) => {
               },
             },
             {
-              numbers: {
-                $map: {
-                  input: "$numbers",
-                  as: "specialzation",
-                  in: {
-                    $mergeObjects: [
-                      "$$specialzation",
-                      {
-                        specialzation: {
-                          $arrayElemAt: [
-                            {
-                              $filter: {
-                                input: "$numbersData",
-                                as: "p",
-                                cond: {
-                                  $eq: [
-                                    "$$p._id",
-                                    "$$specialzation.specialzation",
-                                  ],
+              $addFields: {
+                numbers: {
+                  $map: {
+                    input: "$numbers",
+                    as: "specialization",
+                    in: {
+                      $mergeObjects: [
+                        "$$specialization",
+                        {
+                          specialization: {
+                            $arrayElemAt: [
+                              {
+                                $filter: {
+                                  input: "$numbersData",
+                                  as: "p",
+                                  cond: {
+                                    $eq: [
+                                      "$$p._id",
+                                      "$$specialization.specialization",
+                                    ],
+                                  },
                                 },
                               },
-                            },
-                            0,
-                          ],
+                              0,
+                            ],
+                          },
                         },
-                      },
-                    ],
+                      ],
+                    },
                   },
                 },
               },
@@ -115,6 +116,7 @@ router.get("/activeConvoys", async (req, res) => {
       },
     });
   } catch (e) {
+    console.log(e);
     res.status(400).send(e);
   }
 });
