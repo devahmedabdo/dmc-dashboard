@@ -6,11 +6,9 @@ const axios = require("axios");
 router.get("/post", async (req, res) => {
   try {
     const url = req.query.url;
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({ headless: "new" });
     const page = await browser.newPage();
-
     await page.goto(url, { waitUntil: "networkidle0" });
-
     const images = await page.evaluate(() => {
       // Extract images using selectors or other methods
       const imageElements = document.querySelectorAll("img");
@@ -21,15 +19,13 @@ router.get("/post", async (req, res) => {
         (src) => src && src.startsWith("https://scontent")
       );
     });
-
-    // console.log(postInfo); // Display retrieved post information
     await browser.close();
     return res.send(images || []);
   } catch (error) {
     return res.send(error);
   }
 });
-router.get("/postt", async (req, res) => {
+router.get("/posttw", async (req, res) => {
   try {
     let images = [];
     for (let i = 1; i <= 30; i++) {
