@@ -25,6 +25,12 @@ router.get("/products", async (req, res) => {
         },
       },
     ]);
+
+    for (let i = 0; i < products[0].data.length; i++) {
+      if (products[0].data[i].photos.length > 2)
+        products[0].data[i].photos.length = 2;
+    }
+
     res.send({
       items: products[0].data,
       pagination: {
@@ -34,6 +40,7 @@ router.get("/products", async (req, res) => {
       },
     });
   } catch (e) {
+    console.log(e);
     res.status(400).send(e.message);
   }
 });

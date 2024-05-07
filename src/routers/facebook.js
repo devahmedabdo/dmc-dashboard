@@ -20,8 +20,21 @@ router.get("/post", async (req, res) => {
       );
     });
     await browser.close();
-    return res.send(images || []);
+    const blobImages = [];
+    for (let i = 0; i < images.length; i++) {
+      await fetch(images[i])
+        .then((data) => {
+          return data.arrayBuffer();
+        })
+        .then((arrayBuffer) => {
+          const buffer = Buffer.from(arrayBuffer); // Convert ArrayBuffer to Buffer
+          const base64String = buffer.toString("base64"); // Convert Buffer to base64 string
+          blobImages.push("data:image/png;base64," + base64String);
+        });
+    }
+    return res.send(blobImages || []);
   } catch (error) {
+    console.log(error);
     return res.send(error);
   }
 });
