@@ -104,10 +104,12 @@ router.get("/members-card", async (req, res) => {
 // member login
 router.post("/member/login", async (req, res) => {
   try {
+    console.log(req.body);
     const member = await Member.findByCredentials(
       req.body.email,
       req.body.password
     );
+    console.log(member);
     const token = await member.generateToken();
     res.send({ member, token });
   } catch (e) {
