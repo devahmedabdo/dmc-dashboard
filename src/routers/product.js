@@ -44,6 +44,29 @@ router.get("/products", async (req, res) => {
     res.status(400).send(e.message);
   }
 });
+// all Products
+router.get("/product/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const product = await Product.findOne(
+      {
+        _id: id,
+      },
+      {
+        status: 0,
+        __v: 0,
+      }
+    );
+
+    if (!product) {
+      return res.status(404).send(`Product dosn't exist`);
+    }
+    res.send(product);
+  } catch (e) {
+    console.log(e);
+    res.status(400).send(e.message);
+  }
+});
 router.get(
   "/panel/products",
   auth.admin("gallery", "read"),
