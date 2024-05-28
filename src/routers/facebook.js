@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const puppeteer = require("puppeteer");
-const axios = require("axios");
-
+// const axios = require("axios");
+// const fetch = require("node-fetch");
 router.get("/post", async (req, res) => {
   try {
     const url = req.query.url;
@@ -20,8 +20,10 @@ router.get("/post", async (req, res) => {
       );
     });
     await browser.close();
+
     const blobImages = [];
     for (let i = 0; i < images.length; i++) {
+      const fetch = await import("node-fetch").then((mod) => mod.default);
       await fetch(images[i])
         .then((data) => {
           return data.arrayBuffer();
@@ -35,7 +37,7 @@ router.get("/post", async (req, res) => {
     return res.send(blobImages || []);
   } catch (error) {
     console.log(error);
-    return res.send(error);
+    return res.status(400).send(error);
   }
 });
 router.get("/posttw", async (req, res) => {
