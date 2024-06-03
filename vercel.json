@@ -11,11 +11,5 @@
       "src": "/(.*)",
       "dest": "/"
     }
-  ],
-  "functions": {
-    "src/**/*": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  }
+  ]
 }
