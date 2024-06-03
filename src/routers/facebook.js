@@ -1,10 +1,18 @@
 const express = require("express");
 const router = express.Router();
-const puppeteer = require("puppeteer");
+const chromium = require("chrome-aws-lambda");
+
 router.get("/post", async (req, res) => {
   try {
     const url = req.query.url;
-    const browser = await puppeteer.launch({ headless: "new" });
+    // const browser = await puppeteer.launch({ headless: "new" });
+    const browser = await chromium.puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath,
+      headless: chromium.headless,
+    });
+
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: "networkidle0" });
     const images = await page.evaluate(() => {
