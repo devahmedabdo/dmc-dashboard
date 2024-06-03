@@ -151,7 +151,7 @@ router.post("/product", auth.admin("gallery", "add"), async (req, res) => {
 });
 router.patch(
   "/product/:id",
-  auth.admin("gallery", "edit"),
+  auth.admin("gallery", "write"),
 
   async (req, res) => {
     try {
