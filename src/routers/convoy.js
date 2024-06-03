@@ -162,7 +162,7 @@ router.get("/convoys", auth.admin("convoys", "read"), async (req, res) => {
 router.get("/convoy/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const convoy = await Convoy.findOne({
+    let convoy = await Convoy.findOne({
       _id: id,
     });
 
@@ -215,11 +215,14 @@ router.get("/convoy/:id", async (req, res) => {
         member.image = "";
       }
     });
-    convoy.members = members[0].data;
+    // console.log(members[0].data);
     await convoy.populate("numbers.specialization");
     await convoy.populate("collaborators");
+    // await convoy.populate("members");
     await convoy.populate("forwards.doctor");
-    res.status(200).send(convoy);
+    convoy.members = members[0].data;
+    // console.log(members[0].data);
+    res.status(200).send({ convoy, members: members[0].data });
   } catch (e) {
     res.status(401).send("401" + e);
   }

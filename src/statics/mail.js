@@ -1,6 +1,8 @@
 const nodemailer = require("nodemailer");
 const emails = require("../statics/emailMessages");
-
+const subjects = {
+  newOrder: "طلب جديد في الجاليرى",
+};
 function sendEmail(type, data, email) {
   return new Promise((resolve, reject) => {
     var transporter = nodemailer.createTransport({
@@ -10,6 +12,7 @@ function sendEmail(type, data, email) {
         pass: process.env.MY_SECRET_EMAIL_PASS,
       },
     });
+    console.log(email);
     const mailOption = {
       from: process.env.MY_SECRET_EMAIL,
       to: email,

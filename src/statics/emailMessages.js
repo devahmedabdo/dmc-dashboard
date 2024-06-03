@@ -245,8 +245,8 @@ function getEmails(type, data) {
       <td style="padding: 20px;">
         <img class="email-img" src="${process.env.LIVE_CPANEL_URL}assets/email/newOrder.png"
           style="width: 30%; min-width:300px; max-width: 350px;" alt="New Order">
-        <h1>هناك طلب جديد</h1>
-        <h2>باسم <span  style="color: #018baa;">${data.name}</span></h2>
+        <h1>هناك طلب جديد باسم</h1>
+        <h2  style="color: #018baa;"> ${data.name} </h2>
         <p style="max-width: 500px; margin: 20px auto; color: #656565ee;">يرجى مراجعته</p>
         <a href="${process.env.LIVE_CPANEL_URL}gallery/orders"
           style="all: unset; display: block; width: fit-content; margin: auto; padding: 8px 16px; background-color: #018baa; color: white; box-shadow: 0px 5px 6px #0000002e; border-radius: 8px; cursor: pointer;">الطلبات</a>
@@ -343,6 +343,13 @@ function creatOrderTabel(array) {
     tabel += `<tr><td>${prod.product.name}</td><td>${prod.product.price}</td><td>${prod.total}</td></tr>
     `;
   });
+  // console.log(array);
+  let total = array.reduce((pre, curr) => {
+    return pre + curr.total * curr.product.price;
+  }, 0);
+  tabel += `<tr style="background: #eeeeee;"><td>الاجمالي</td><td></td><td>${total}</td></tr>
+  `;
+
   return tabel;
 }
 module.exports = { getEmails };

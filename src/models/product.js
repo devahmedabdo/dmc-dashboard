@@ -27,6 +27,7 @@ const collaboratorSchema = mongoose.Schema({
     default: "0",
   },
   photos: [],
+  testimonials: [],
 });
 const Product = mongoose.model("Product", collaboratorSchema);
 module.exports = Product;

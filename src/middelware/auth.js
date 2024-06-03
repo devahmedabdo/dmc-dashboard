@@ -22,8 +22,8 @@ const member = async (req, res, next) => {
 const admin = (permission, type) => {
   return async (req, res, next) => {
     try {
-      next();
-      return;
+      // next();
+      // return;
       const token = req.header("Authorization").replace("Bearer ", "");
       const decode = jwt.verify(token, process.env.JWT_SECRET);
       const admin = await Admin.findOne({ _id: decode._id, tokens: token });
@@ -31,7 +31,6 @@ const admin = (permission, type) => {
         return res.status(401).send("please log in");
       }
       await admin.populate("role");
-
       if (
         !admin.role.permissions.includes(roles[permission].permissions[type].id)
       ) {

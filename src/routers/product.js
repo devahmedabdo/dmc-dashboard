@@ -18,6 +18,16 @@ router.get("/products", async (req, res) => {
                 status: "1",
               },
             },
+            {
+              $project: {
+                // Include only the fields you need
+                name: 1,
+                photos: 1,
+                price: 1,
+                disscount: 1,
+                // Add other fields as needed
+              },
+            },
             { $skip: skip },
             { $limit: limit },
           ],
@@ -105,45 +115,40 @@ router.get(
     }
   }
 );
-router.post(
-  "/product",
-  auth.admin("gallery", "add"),
-
-  async (req, res) => {
-    try {
-      const product = await new Product(req.body);
-      await product.save();
-      res.status(200).send(product);
-    } catch (error) {
-      if (error.name === "ValidationError") {
-        if (error.errors) {
-          const validationErrors = {};
-          for (const field in error.errors) {
-            if (error.errors.hasOwnProperty(field)) {
-              validationErrors[field] = {
-                message: error.errors[field].message,
-              };
-            }
+router.post("/product", auth.admin("gallery", "add"), async (req, res) => {
+  try {
+    const product = await new Product(req.body);
+    await product.save();
+    res.status(200).send(product);
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      if (error.errors) {
+        const validationErrors = {};
+        for (const field in error.errors) {
+          if (error.errors.hasOwnProperty(field)) {
+            validationErrors[field] = {
+              message: error.errors[field].message,
+            };
           }
-          return res.status(422).send({ errors: validationErrors });
-        } else {
-          return res.status(422).send({ errors: { general: error.message } });
         }
-      } else if (error.code === 11000) {
-        // Duplicate key error
-        const field = Object.keys(error.keyValue)[0];
-        const duplicateError = {
-          [field]: {
-            message: `The ${field} '${error.keyValue[field]}' is already in use.`,
-          },
-        };
-        return res.status(422).send({ errors: duplicateError });
+        return res.status(422).send({ errors: validationErrors });
       } else {
-        return res.status(400).send(error);
+        return res.status(422).send({ errors: { general: error.message } });
       }
+    } else if (error.code === 11000) {
+      // Duplicate key error
+      const field = Object.keys(error.keyValue)[0];
+      const duplicateError = {
+        [field]: {
+          message: `The ${field} '${error.keyValue[field]}' is already in use.`,
+        },
+      };
+      return res.status(422).send({ errors: duplicateError });
+    } else {
+      return res.status(400).send(error);
     }
   }
-);
+});
 router.patch(
   "/product/:id",
   auth.admin("gallery", "edit"),

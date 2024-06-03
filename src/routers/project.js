@@ -72,7 +72,7 @@ router.post("/project", auth.admin("projects", "add"), async (req, res) => {
 });
 router.patch(
   "/project/:id",
-  auth.admin("projects", "edit"),
+  auth.admin("projects", "write"),
 
   async (req, res) => {
     try {

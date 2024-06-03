@@ -24,17 +24,17 @@ const adminSchema = mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    // minLength: 8,
-    // validate(value) {
-    //   let strongPassword = new RegExp(
-    //     "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])"
-    //   );
-    //   if (!strongPassword.test(value)) {
-    //     throw new Error(
-    //       "Password must include small and capital letter , symbols and numbers"
-    //     );
-    //   }
-    // },
+    minLength: 8,
+    validate(value) {
+      let strongPassword = new RegExp(
+        "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])"
+      );
+      if (!strongPassword.test(value)) {
+        throw new Error(
+          "Password must include small and capital letter , symbols and numbers"
+        );
+      }
+    },
   },
   role: {
     type: mongoose.Schema.Types.ObjectId,

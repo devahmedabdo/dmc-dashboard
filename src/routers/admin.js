@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const roles = require("../middelware/roles");
+const allroles = require("../middelware/roles");
 const Admin = require("../models/admin");
 const auth = require("../middelware/auth");
 const Member = require("../models/member");
@@ -160,7 +160,7 @@ router.post("/admin/login", async (req, res) => {
     };
 
     // Filter each role based on admin role permissions
-    const permissions = Object.entries(roles).reduce(
+    const permissions = Object.entries(allroles).reduce(
       (result, [key, { title, permissions }]) => {
         const filteredPermissions = filterPermissions(permissions);
         if (filteredPermissions) {
@@ -337,16 +337,16 @@ router.patch(
         member[e] = req.body[e];
       });
       await member.save();
-      if (oldStatus != member.status) {
-        mail.sendEmail(
-          mail.getEmails(
-            "members",
-            `${oldStatus}${member.status}`,
-            member,
-            member.email
-          )
-        );
-      }
+      // if (oldStatus != member.status) {
+      //   mail.sendEmail(
+      //     mail.getEmails(
+      //       "members",
+      //       `${oldStatus}${member.status}`,
+      //       member,
+      //       member.email
+      //     )
+      //   );
+      // }
       res.status(200).send(member);
     } catch (error) {
       if (error.name === "ValidationError") {

@@ -103,17 +103,26 @@ router.post("/order", async (req, res) => {
         message: "عذرا استقبال الطلبات موقوف حاليا",
       });
     }
+
     const order = await new Order(req.body);
     for (let i = 0; i < order.products.length; i++) {
       await order.populate("products.product");
     }
     await order.save();
 
-    mail
-      .sendEmail("newOrder", order, "devahmedabdo@gmail.com")
-      .then((data) => {});
+    //  send mail to user
+    mail.sendEmail("orderRecieved", order, order.email).then((d) => {
+      console.log(d);
+    });
 
-    res.status(200).send(emails.getEmails("orderRecieved", order));
+    //  send mail to DMC
+    mail
+      .sendEmail("newOrder", order, config.galleryEmails.join(","))
+      .then((d) => {
+        console.log(d);
+      });
+
+    res.status(200).send();
   } catch (e) {
     console.log(e);
     if (e.name == "ValidationError") {

@@ -30,6 +30,19 @@ const configSchema = mongoose.Schema(
         _id: false,
       },
     ],
+    galleryEmails: {
+      type: [String],
+      min: 1,
+    },
+    donations: {
+      type: [
+        {
+          method: String,
+          value: String,
+          project: String,
+        },
+      ],
+    },
   }
   // { timestamps: true }
 );

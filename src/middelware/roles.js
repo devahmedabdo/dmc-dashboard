@@ -1,4 +1,4 @@
-const roles = {
+const allroles = {
   users: {
     title: "المستخدمين",
     permissions: {
@@ -238,4 +238,4 @@ const roles = {
   },
 };
 
-module.exports = roles;
+module.exports = allroles;
