@@ -1,8 +1,9 @@
 const express = require("express");
 const fetch = require("node-fetch");
-const chromium = require("chrome-aws-lambda");
+// const chromium = require("chrome-aws-lambda");
 const app = express();
-
+let chromium = {};
+var puppeteer;
 app.get("/post", async (req, res) => {
   try {
     const url = req.query.url;
@@ -16,7 +17,7 @@ app.get("/post", async (req, res) => {
       puppeteer = require("puppeteer");
     }
 
-    let browser = await puppeteer.launch({
+    const browser = await puppeteer.launch({
       args: [...chromium.args, "--hide-scrollbars", "--disable-web-security"],
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath,
