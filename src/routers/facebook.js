@@ -1,28 +1,32 @@
 const express = require("express");
 const fetch = require("node-fetch");
-// const chromium = require("chrome-aws-lambda");
 const app = express();
+
 let chromium = {};
-var puppeteer;
+let puppeteer;
+
+if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+  // running on the Vercel platform
+  chromium = require("chrome-aws-lambda");
+  puppeteer = require("puppeteer-core");
+} else {
+  // running locally
+  puppeteer = require("puppeteer");
+}
+
 app.get("/post", async (req, res) => {
   try {
     const url = req.query.url;
 
-    if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
-      // running on the Vercel platform.
-      chromium = require("chrome-aws-lambda");
-      puppeteer = require("puppeteer-core");
-    } else {
-      // running locally.
-      puppeteer = require("puppeteer");
-    }
-
     const browser = await puppeteer.launch({
-      args: [...chromium.args, "--hide-scrollbars", "--disable-web-security"],
+      args: process.env.AWS_LAMBDA_FUNCTION_VERSION
+        ? [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox"]
+        : ["--no-sandbox", "--disable-setuid-sandbox"],
       defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
+      executablePath: process.env.AWS_LAMBDA_FUNCTION_VERSION
+        ? await chromium.executablePath
+        : puppeteer.executablePath,
       headless: true,
-      ignoreHTTPSErrors: true,
     });
 
     const page = await browser.newPage();
@@ -57,30 +61,3 @@ app.get("/post", async (req, res) => {
 });
 
 module.exports = app;
-
-let chrome = {};
-let puppeteer;
-
-if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
-  // running on the Vercel platform.
-  chrome = require("chrome-aws-lambda");
-  puppeteer = require("puppeteer-core");
-} else {
-  // running locally.
-  puppeteer = require("puppeteer");
-}
-
-const getData = async (url) => {
-  try {
-    let browser = await puppeteer.launch({
-      args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
-      defaultViewport: chrome.defaultViewport,
-      executablePath: await chrome.executablePath,
-      headless: true,
-      ignoreHTTPSErrors: true,
-    });
-  } catch (err) {
-    console.error(err);
-    return null;
-  }
-};
