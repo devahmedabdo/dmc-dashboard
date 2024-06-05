@@ -16,6 +16,7 @@ if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
 app.get("/post", async (req, res) => {
   try {
     const url = req.query.url;
+    console.log(await chromium.executablePath());
 
     const browser = await puppeteer.launch({
       args: chromium.args,
