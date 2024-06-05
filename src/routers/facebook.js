@@ -1,5 +1,5 @@
 const express = require("express");
-const { default: fetch } = require("node-fetch");
+const fetch = require("node-fetch");
 const chromium = require("chrome-aws-lambda");
 const app = express();
 
@@ -8,10 +8,10 @@ app.get("/post", async (req, res) => {
     const url = req.query.url;
 
     const browser = await chromium.puppeteer.launch({
-      args: chromium.args,
+      args: [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox"],
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath,
-      headless: chromium.headless,
+      headless: true,
     });
 
     const page = await browser.newPage();
