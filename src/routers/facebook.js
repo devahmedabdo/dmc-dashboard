@@ -7,6 +7,7 @@ app.get("/post", async (req, res) => {
   try {
     const url = req.query.url;
 
+    // Launch Chromium with chrome-aws-lambda
     const browser = await chromium.puppeteer.launch({
       args: [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox"],
       defaultViewport: chromium.defaultViewport,
