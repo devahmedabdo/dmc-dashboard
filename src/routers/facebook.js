@@ -1,17 +1,18 @@
 const express = require("express");
-const fetch = require("node-fetch");
-const chromium = require("@sparticuz/chromium-min");
 const app = express();
 
-let puppeteer;
+const fetch = require("node-fetch");
+const chromium = require("@sparticuz/chromium");
 
-if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
-  // Running on Vercel
-  puppeteer = require("puppeteer-core");
-} else {
-  // Running locally
-  puppeteer = require("puppeteer");
-}
+const puppeteer = require("puppeteer-core");
+// let puppeteer;
+
+// if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+//   // Running on Vercel
+// } else {
+//   // Running locally
+//   puppeteer = require("puppeteer");
+// }
 
 app.get("/post", async (req, res) => {
   try {
