@@ -15,6 +15,7 @@ if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
 
 app.get("/post", async (req, res) => {
   try {
+    console.log(12);
     const url = req.query.url;
     console.log(await chromium.executablePath());
 
