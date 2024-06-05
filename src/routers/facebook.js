@@ -1,16 +1,15 @@
 const express = require("express");
 const fetch = require("node-fetch");
+const chromium = require("@sparticuz/chromium-min");
 const app = express();
 
-let chromium = {};
 let puppeteer;
 
 if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
-  // running on the Vercel platform
-  chromium = require("chrome-aws-lambda");
+  // Running on Vercel
   puppeteer = require("puppeteer-core");
 } else {
-  // running locally
+  // Running locally
   puppeteer = require("puppeteer");
 }
 
@@ -19,15 +18,10 @@ app.get("/post", async (req, res) => {
     const url = req.query.url;
 
     const browser = await puppeteer.launch({
-      args: process.env.AWS_LAMBDA_FUNCTION_VERSION
-        ? [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox"]
-        : ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath: process.env.AWS_LAMBDA_FUNCTION_VERSION
-        ? await chromium.executablePath
-        : puppeteer.executablePath(),
-      headless: true,
-      ignoreHTTPSErrors: true,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
     });
 
     const page = await browser.newPage();
@@ -35,12 +29,9 @@ app.get("/post", async (req, res) => {
 
     const images = await page.evaluate(() => {
       const imageElements = document.querySelectorAll("img");
-      const imageSources = Array.from(imageElements).map((img) =>
-        img.getAttribute("src")
-      );
-      return imageSources.filter(
-        (src) => src && src.startsWith("https://scontent")
-      );
+      return Array.from(imageElements)
+        .map((img) => img.getAttribute("src"))
+        .filter((src) => src && src.startsWith("https://scontent"));
     });
 
     await browser.close();
@@ -50,14 +41,13 @@ app.get("/post", async (req, res) => {
         const response = await fetch(img);
         const arrayBuffer = await response.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
-        const base64String = buffer.toString("base64");
-        return `data:image/png;base64,${base64String}`;
+        return `data:image/png;base64,${buffer.toString("base64")}`;
       })
     );
 
-    return res.send(blobImages);
+    res.send(blobImages);
   } catch (error) {
-    return res.status(400).send({ error: error.message });
+    res.status(400).send({ error: error.message });
   }
 });
 
