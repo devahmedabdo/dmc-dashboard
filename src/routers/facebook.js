@@ -25,8 +25,9 @@ app.get("/post", async (req, res) => {
       defaultViewport: chromium.defaultViewport,
       executablePath: process.env.AWS_LAMBDA_FUNCTION_VERSION
         ? await chromium.executablePath
-        : puppeteer.executablePath,
+        : puppeteer.executablePath(),
       headless: true,
+      ignoreHTTPSErrors: true,
     });
 
     const page = await browser.newPage();
