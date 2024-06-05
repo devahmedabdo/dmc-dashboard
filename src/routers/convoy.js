@@ -190,6 +190,7 @@ router.get("/convoy/:id", async (req, res) => {
                 image: 1,
                 socialAccounts: 1,
                 showImg: 1,
+                convoys: 1,
                 committee: 1,
                 joinDate: 1,
               },
@@ -214,6 +215,7 @@ router.get("/convoy/:id", async (req, res) => {
       if (!member.showImg) {
         member.image = "";
       }
+      delete member.showImg;
     });
     // console.log(members[0].data);
     await convoy.populate("numbers.specialization");
