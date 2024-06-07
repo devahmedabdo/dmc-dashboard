@@ -42,7 +42,7 @@ router.get("/config", async (req, res) => {
       },
     ];
 
-    res.send(config, numbers);
+    res.send({ config, numbers });
   } catch (e) {
     res.status(400).send(e.message);
   }
