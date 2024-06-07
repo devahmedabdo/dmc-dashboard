@@ -40,10 +40,21 @@ router.get("/projects", async (req, res) => {
     const limit = +process.env.LIMIT;
     const skip = (page - 1) * limit;
     const project = await Project.aggregate([
-      { $match: { status: req.query.status } },
+      { $match: { status: true } },
       {
         $facet: {
-          data: [{ $skip: skip }, { $limit: limit }],
+          data: [
+            { $skip: skip },
+            { $limit: limit },
+            {
+              $project: {
+                date: 1,
+                title: 1,
+                _id: 1,
+                address: 1,
+              },
+            },
+          ],
           count: [{ $count: "count" }],
         },
       },
@@ -57,6 +68,25 @@ router.get("/projects", async (req, res) => {
         total: project[0].count.length ? project[0].count[0].count : 0,
       },
     });
+  } catch (e) {
+    res.status(400).send({ e });
+  }
+});
+router.get("/project/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    let project = await Project.findOne(
+      {
+        _id: id,
+      },
+      { status: 0 }
+    );
+
+    if (!project) {
+      return res.status(404).send(`project dosn't exist`);
+    }
+
+    res.send(project);
   } catch (e) {
     res.status(400).send({ e });
   }

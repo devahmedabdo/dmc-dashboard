@@ -4,25 +4,14 @@ const app = express();
 const fetch = require("node-fetch");
 const chromium = require("@sparticuz/chromium");
 
-// const puppeteer = require("puppeteer");
-console.log(process.env.AWS_LAMBDA_FUNCTION_VERSION);
 const puppeteer = process.env.AWS_LAMBDA_FUNCTION_VERSION
   ? require("puppeteer-core")
   : require("puppeteer");
-// // let puppeteer;
 
 app.get("/post", async (req, res) => {
   try {
     console.log(12);
     const url = req.query.url;
-
-    // const browser = await puppeteer.launch({
-    //   args: chromium.args,
-    //   defaultViewport: chromium.defaultViewport,
-    //   executablePath: await chromium.executablePath(),
-    //   headless: chromium.headless,
-    // });
-
     const browser = process.env.AWS_LAMBDA_FUNCTION_VERSION
       ? await puppeteer.launch({
           args: chromium.args,

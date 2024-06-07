@@ -73,18 +73,40 @@ router.delete("/member", auth.member, async (req, res) => {
 router.get("/members-card", async (req, res) => {
   try {
     const page = +req.query.page || 1;
-    const limit = +process.env.LIMIT;
+    const limit = +process.env.LIMIT_OF_USER;
     const skip = (page - 1) * limit;
     const members = await Member.aggregate([
       {
         $match: {
           card: true,
-          status: true,
+          status: "3",
         },
       },
       {
         $facet: {
-          data: [{ $skip: skip }, { $limit: limit }],
+          data: [
+            { $skip: skip },
+            { $limit: limit },
+            {
+              $lookup: {
+                from: "committees",
+                localField: "committee",
+                foreignField: "_id",
+                as: "committee",
+              },
+            },
+            // {
+            //   $project: {
+            //     // // _id: 1,
+            //     // name: 1,
+            //     // image: 1,
+            //     // socialAccounts: 1,
+            //     // showImg: 1,
+            //     // committee: 1,
+            //     // joinDate: 1,
+            //   },
+            // },
+          ],
           count: [{ $count: "total" }],
         },
       },
@@ -92,10 +114,13 @@ router.get("/members-card", async (req, res) => {
     // TODO: hide img for some
 
     res.send({
-      page,
-      limit,
-      total: members[0].count[0].total,
-      members: members[0].data,
+      pagination: {
+        page: page,
+        limit: limit,
+        total: members[0].count[0].total ? members[0].count[0].total : 0,
+      },
+      items: members[0].data,
+      itemsA: members,
     });
   } catch (e) {
     res.status(400).send(e);

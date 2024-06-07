@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const Config = require("../models/config");
+const Convoy = require("../models/convoy");
+const Project = require("../models/project");
 const auth = require("../middelware/auth");
 // all
 router.get("/config", async (req, res) => {
@@ -9,7 +11,38 @@ router.get("/config", async (req, res) => {
     if (!config) {
       return res.status(404).send("no gonfig yet");
     }
-    res.send(config);
+
+    let convoys = await Convoy.countDocuments({
+      status: "1",
+    });
+    let projects = await Project.countDocuments({
+      status: true,
+    });
+
+    const numbers = [
+      {
+        name: "قوافل طبية",
+        number: convoys,
+        icon: "ambulance",
+      },
+      // {
+      //   name: "مقالات طبية",
+      //   number: 20,
+      //   icon: "document",
+      // },
+      {
+        name: "حالات رعاية",
+        number: 43,
+        icon: "fever",
+      },
+      {
+        name: "مشاريع خيرية",
+        number: projects,
+        icon: "suitcase",
+      },
+    ];
+
+    res.send(config, numbers);
   } catch (e) {
     res.status(400).send(e.message);
   }
