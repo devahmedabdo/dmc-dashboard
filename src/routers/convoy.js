@@ -27,6 +27,7 @@ router.post(
       await convoy.save();
       res.status(200).send(convoy);
     } catch (e) {
+      console.log(e);
       if (e.name == "ValidationError") {
         return res.status(422).send(e.errors);
       }
