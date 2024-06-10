@@ -161,6 +161,8 @@ router.get("/convoys", auth.admin("convoys", "read"), async (req, res) => {
 // get convoy details
 router.get("/convoy/:id", async (req, res) => {
   try {
+    const limit = 2; //+process.env.LIMIT_OF_USER;
+
     const id = req.params.id;
     let convoy = await Convoy.findOne({
       _id: id,
@@ -181,8 +183,8 @@ router.get("/convoy/:id", async (req, res) => {
       {
         $facet: {
           data: [
-            // { $skip: skip },
-            { $limit: 10 },
+            { $skip: 0 },
+            { $limit: limit },
             {
               $project: {
                 _id: 1,
@@ -224,7 +226,15 @@ router.get("/convoy/:id", async (req, res) => {
     await convoy.populate("forwards.doctor");
     convoy.members = members[0].data;
     // console.log(members[0].data);
-    res.status(200).send({ convoy, members: members[0].data });
+    res.status(200).send({
+      convoy,
+      members: members[0].data,
+      pagination: {
+        page: 1,
+        limit: limit,
+        total: members[0].count.length ? members[0].count[0].total : 0,
+      },
+    });
   } catch (e) {
     res.status(401).send("401" + e);
   }
@@ -234,7 +244,7 @@ router.get("/convoy/members-card/:id", async (req, res) => {
   try {
     let id = req.params.id;
     const page = +req.query.page || 1;
-    const limit = 10;
+    const limit = 2; //+process.env.LIMIT_OF_USER;
     const skip = (page - 1) * limit;
 
     const members = await Member.aggregate([

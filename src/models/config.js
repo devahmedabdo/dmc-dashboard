@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const configSchema = mongoose.Schema(
   {
-    visits: {
+    numberOfPatient: {
       type: Number,
     },
     acceptOrder: {

@@ -10,7 +10,6 @@ const puppeteer = process.env.AWS_LAMBDA_FUNCTION_VERSION
 
 app.get("/post", async (req, res) => {
   try {
-    console.log(12);
     const url = req.query.url;
     const browser = process.env.AWS_LAMBDA_FUNCTION_VERSION
       ? await puppeteer.launch({
@@ -44,7 +43,8 @@ app.get("/post", async (req, res) => {
 
     res.send(blobImages);
   } catch (error) {
-    res.status(400).send({ error: error.message });
+    console.log(error);
+    res.status(400).send({ error });
   }
 });
 

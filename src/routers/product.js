@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const mongoose = require("mongoose");
 const Product = require("../models/product");
 const auth = require("../middelware/auth");
 // all Products
@@ -57,10 +58,12 @@ router.get("/products", async (req, res) => {
 // all Products
 router.get("/product/:id", async (req, res) => {
   try {
-    const id = req.params.id;
+    const id = mongoose.Types.ObjectId(req.params.id);
+
     const product = await Product.findOne(
       {
         _id: id,
+        status: "1",
       },
       {
         status: 0,
@@ -71,7 +74,16 @@ router.get("/product/:id", async (req, res) => {
     if (!product) {
       return res.status(404).send(`Product dosn't exist`);
     }
-    res.send(product);
+    const more = await Product.aggregate([
+      { $match: { _id: { $ne: id }, status: "1" } },
+      { $sample: { size: 4 } },
+    ]);
+
+    for (let i = 0; i < more.length; i++) {
+      if (more[i].photos.length > 2) more[i].photos.length = 2;
+    }
+
+    res.send({ product, more });
   } catch (e) {
     console.log(e);
     res.status(400).send(e.message);

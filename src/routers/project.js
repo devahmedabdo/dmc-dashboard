@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Project = require("../models/project");
 const auth = require("../middelware/auth");
+const mongoose = require("mongoose");
 // all project admins
 router.get(
   "/panel/projects",
@@ -74,7 +75,7 @@ router.get("/projects", async (req, res) => {
 });
 router.get("/project/:id", async (req, res) => {
   try {
-    const id = req.params.id;
+    const id = mongoose.Types.ObjectId(req.params.id);
     let project = await Project.findOne(
       {
         _id: id,
@@ -85,9 +86,22 @@ router.get("/project/:id", async (req, res) => {
     if (!project) {
       return res.status(404).send(`project dosn't exist`);
     }
+    const more = await Project.aggregate([
+      { $match: { _id: { $ne: id }, status: true } },
+      { $sample: { size: 4 } },
+      {
+        $project: {
+          date: 1,
+          title: 1,
+          _id: 1,
+          address: 1,
+        },
+      },
+    ]);
 
-    res.send(project);
+    res.send({ project, more });
   } catch (e) {
+    console.log(e);
     res.status(400).send({ e });
   }
 });

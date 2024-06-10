@@ -32,7 +32,7 @@ router.get("/config", async (req, res) => {
       // },
       {
         name: "حالات رعاية",
-        number: 43,
+        number: config.numberOfPatient,
         icon: "fever",
       },
       {
@@ -47,9 +47,25 @@ router.get("/config", async (req, res) => {
     res.status(400).send(e.message);
   }
 });
+router.get(
+  "/panel/config",
+  auth.admin("settings", "read"),
+  async (req, res) => {
+    try {
+      const config = await Config.findOne({});
+      if (!config) {
+        return res.status(404).send("no gonfig yet");
+      }
+
+      res.send(config);
+    } catch (e) {
+      res.status(400).send(e.message);
+    }
+  }
+);
 router.put(
   "/config",
-  auth.admin("settings", "upgrade"), // TODO: uncomment this
+  auth.admin("settings", "write"), // TODO: uncomment this
   async (req, res) => {
     try {
       let config = await Config.findOne({});
