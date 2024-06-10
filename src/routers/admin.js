@@ -268,6 +268,8 @@ router.post("/admin/change-password/:token", async (req, res) => {
 // modify  member
 router.post("/admin/member", auth.admin("members", "add"), async (req, res) => {
   try {
+    !req.body.convoys ? (req.body.convoys = []) : "";
+
     const member = await new Member(req.body);
     await member.save();
     res.status(201).send(member);

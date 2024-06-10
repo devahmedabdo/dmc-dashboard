@@ -16,6 +16,7 @@ router.post("/member", async (req, res) => {
       });
     }
 
+    !req.body.convoys ? (req.body.convoys = []) : "";
     const member = await new Member(req.body);
     await member.save();
     // TODO: send mail to admin
