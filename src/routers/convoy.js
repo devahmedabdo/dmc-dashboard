@@ -14,16 +14,12 @@ router.post(
       const convoy = await new Convoy(req.body);
 
       if (req.body.participations?.length) {
-        console.log("there is aparticipations");
         for (let i = 0; i < req.body.participations?.length; i++) {
           const member = await Member.findById(req.body.participations[i]);
-          console.log("member");
-          console.log(convoy._id);
           member.convoys.push(convoy._id);
           await member.save();
         }
       }
-      console.log("start save convoy");
       await convoy.save();
       res.status(200).send(convoy);
     } catch (e) {
@@ -162,7 +158,7 @@ router.get("/convoys", auth.admin("convoys", "read"), async (req, res) => {
 // get convoy details
 router.get("/convoy/:id", async (req, res) => {
   try {
-    const limit = 2; //+process.env.LIMIT_OF_USER;
+    const limit = +process.env.LIMIT_OF_USER;
 
     const id = req.params.id;
     let convoy = await Convoy.findOne({
@@ -245,7 +241,7 @@ router.get("/convoy/members-card/:id", async (req, res) => {
   try {
     let id = req.params.id;
     const page = +req.query.page || 1;
-    const limit = 2; //+process.env.LIMIT_OF_USER;
+    const limit = +process.env.LIMIT_OF_USER;
     const skip = (page - 1) * limit;
 
     const members = await Member.aggregate([
@@ -321,6 +317,12 @@ router.delete(
 
       if (!convoy) {
         return res.status(404).send(`convoy dosn't exist`);
+      }
+      const members = await Member.find({ convoys: convoy._id });
+      for (let i = 0; i < members.length; i++) {
+        let index = members[i].convoys.indexOf(convoy._id);
+        members[i].convoys.splice(index, 1);
+        await members[i].save();
       }
       res.status(200).send(convoy);
     } catch (e) {

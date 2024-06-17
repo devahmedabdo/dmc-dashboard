@@ -41,7 +41,22 @@ const memberSchema = mongoose.Schema({
       }
     },
   },
-
+  password: {
+    type: String,
+    required: true,
+    trim: true,
+    // minLength: 8,
+    // validate(value) {
+    //   let strongPassword = new RegExp(
+    //     "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])"
+    //   );
+    //   if (!strongPassword.test(value)) {
+    //     throw new Error(
+    //       "Password must include small and capital letter , symbols and numbers"
+    //     );
+    //   }
+    // },
+  },
   joinDate: {
     type: String,
     trim: true,
@@ -65,22 +80,7 @@ const memberSchema = mongoose.Schema({
       trim: true,
     },
   },
-  password: {
-    type: String,
-    required: true,
-    trim: true,
-    // minLength: 8,
-    // validate(value) {
-    //   let strongPassword = new RegExp(
-    //     "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])"
-    //   );
-    //   if (!strongPassword.test(value)) {
-    //     throw new Error(
-    //       "Password must include small and capital letter , symbols and numbers"
-    //     );
-    //   }
-    // },
-  },
+
   committee: {
     required: true,
     type: mongoose.Schema.Types.ObjectId,
@@ -103,6 +103,7 @@ const memberSchema = mongoose.Schema({
   card: {
     type: Boolean,
     required: true,
+    default: false,
   },
   showImg: {
     type: Boolean,
@@ -125,14 +126,13 @@ memberSchema.pre("save", async function () {
   }
 });
 memberSchema.statics.findByCredentials = async function (email, password) {
-  console.log(email);
   const member = await Member.findOne({ email });
   if (!member) {
-    throw new Error("please check your email or password");
+    throw new Error("كلمة المرور او البريد الالكتروني غير صحيح");
   }
   const isMatch = await bcryptjs.compare(password, member.password);
   if (!isMatch) {
-    throw new Error("please check your email or password");
+    throw new Error("كلمة المرور او البريد الالكتروني غير صحيح");
   }
   return member;
 };
@@ -150,6 +150,8 @@ memberSchema.methods.toJSON = function () {
   const member = this;
   const memberObject = member.toObject();
   delete memberObject.password;
+  delete memberObject.tokens;
+  delete memberObject.status;
   return memberObject;
 };
 

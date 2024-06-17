@@ -18,6 +18,7 @@ const projectSchema = mongoose.Schema({
   },
   type: {
     type: String,
+    required: true,
     default: "other",
   },
   status: {

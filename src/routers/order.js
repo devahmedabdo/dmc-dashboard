@@ -4,7 +4,6 @@ const Order = require("../models/order");
 const auth = require("../middelware/auth");
 const Config = require("../models/config");
 const mail = require("../statics/mail");
-const emails = require("../statics/emailMessages");
 
 // all Products
 router.get(

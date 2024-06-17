@@ -83,7 +83,7 @@ router.patch("/admin/:id", auth.admin("users", "write"), async (req, res) => {
   try {
     const admin = await Admin.findOne({
       _id: req.params.id,
-    });
+    }).select("name _id email");
     if (!admin) {
       return res.status(404).send(`admin dosn't exist`);
     }
@@ -175,7 +175,16 @@ router.post("/admin/login", async (req, res) => {
     );
 
     //
-    res.status(200).send({ admin, permissions, token });
+
+    res.status(200).send({
+      admin: {
+        name: admin.name,
+        _id: admin._id,
+        email: admin.email,
+      },
+      permissions,
+      token,
+    });
   } catch (e) {
     res.status(401).send(e.message);
   }
@@ -339,16 +348,12 @@ router.patch(
         member[e] = req.body[e];
       });
       await member.save();
-      // if (oldStatus != member.status) {
-      //   mail.sendEmail(
-      //     mail.getEmails(
-      //       "members",
-      //       `${oldStatus}${member.status}`,
-      //       member,
-      //       member.email
-      //     )
-      //   );
-      // }
+      if (oldStatus == 2 && member.status == 3) {
+        mail.sendEmail("member23", member, member.email).then((data) => {});
+      }
+      if (oldStatus == 1 && member.status == 3) {
+        mail.sendEmail("member13", member, member.email).then((data) => {});
+      }
       res.status(200).send(member);
     } catch (error) {
       if (error.name === "ValidationError") {
