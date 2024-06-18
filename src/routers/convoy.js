@@ -216,15 +216,83 @@ router.get("/convoy/:id", async (req, res) => {
       }
       delete member.showImg;
     });
-    // console.log(members[0].data);
     await convoy.populate("numbers.specialization");
     await convoy.populate("collaborators");
-    // await convoy.populate("members");
-    await convoy.populate("forwards.doctor");
+    await convoy.populate("collaborators.specialization");
+    await convoy.populate({
+      path: "forwards.doctor",
+      select: "name specialization",
+    });
+    await convoy.populate({
+      path: "forwards.doctor.specialization",
+      select: "name icon",
+    });
     convoy.members = members[0].data;
-    // console.log(members[0].data);
+
+    collabs = {};
+    forwards = {};
+
+    convoy.collaborators.forEach((coll) => {
+      if (collabs[coll.specialization.name + "*" + coll.specialization.icon]) {
+        collabs[coll.specialization.name + "*" + coll.specialization.icon].push(
+          coll.name
+        );
+      } else {
+        collabs[coll.specialization.name + "*" + coll.specialization.icon] = [
+          coll.name,
+        ];
+      }
+    });
+    convoy.forwards.forEach((coll) => {
+      if (
+        forwards[
+          coll.doctor.specialization.name +
+            "*" +
+            coll.doctor.specialization.icon
+        ]
+      ) {
+        forwards[
+          coll.doctor.specialization.name +
+            "*" +
+            coll.doctor.specialization.icon
+        ].push({
+          doctor: coll.doctor.name,
+          total: coll.total,
+        });
+      } else {
+        forwards[
+          coll.doctor.specialization.name +
+            "*" +
+            coll.doctor.specialization.icon
+        ] = [
+          {
+            doctor: coll.doctor.name,
+            total: coll.total,
+          },
+        ];
+      }
+    });
+    let convoyCollaborators = [];
+    let convoyForwards = [];
+
+    Object.keys(collabs).forEach((key) => {
+      convoyCollaborators.push({
+        title: key.split("*")[0],
+        icon: key.split("*")[1],
+        doctors: collabs[key],
+      });
+    });
+    Object.keys(forwards).forEach((key) => {
+      convoyForwards.push({
+        title: key.split("*")[0],
+        icon: key.split("*")[1],
+        doctors: forwards[key],
+      });
+    });
     res.status(200).send({
       convoy,
+      convoyCollaborators,
+      convoyForwards,
       members: members[0].data,
       pagination: {
         page: 1,
