@@ -167,11 +167,12 @@ router.get("/members-card", async (req, res) => {
       pagination: {
         page: page,
         limit: limit,
-        total: members[0].count[0].total ? members[0].count[0].total : 0,
+        total: members[0].count?.[0]?.total ? members[0].count?.[0]?.total : 0,
       },
       items: members[0].data,
     });
   } catch (e) {
+    console.log(e);
     res.status(400).send(e);
   }
 });
