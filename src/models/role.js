@@ -7,9 +7,6 @@ const roleSchema = mongoose.Schema(
       required: true,
       trim: true,
       unique: true,
-      index: {
-        collation: { locale: "en", strength: 2 }, // Example collation, adjust as needed
-      },
     },
     permissions: [],
   }
