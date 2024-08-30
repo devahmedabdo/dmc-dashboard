@@ -3,6 +3,8 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const Product = require("../models/product");
 const auth = require("../middelware/auth");
+const handle = require("../services/errorhandler");
+const { uploud, remove } = require("../services/uploder");
 // all Products
 router.get("/products", async (req, res) => {
   try {
@@ -131,43 +133,20 @@ router.post("/product", auth.admin("gallery", "add"), async (req, res) => {
   try {
     const product = await new Product(req.body);
     await product.save();
-    res.status(200).send(product);
+    product.photos = await uploud("products", req.body?.newPhotos);
+    await product.save();
+    res.status(200).send("product");
   } catch (error) {
-    if (error.name === "ValidationError") {
-      if (error.errors) {
-        const validationErrors = {};
-        for (const field in error.errors) {
-          if (error.errors.hasOwnProperty(field)) {
-            validationErrors[field] = {
-              message: error.errors[field].message,
-            };
-          }
-        }
-        return res.status(422).send({ errors: validationErrors });
-      } else {
-        return res.status(422).send({ errors: { general: error.message } });
-      }
-    } else if (error.code === 11000) {
-      // Duplicate key error
-      const field = Object.keys(error.keyValue)[0];
-      const duplicateError = {
-        [field]: {
-          message: `The ${field} '${error.keyValue[field]}' is already in use.`,
-        },
-      };
-      return res.status(422).send({ errors: duplicateError });
-    } else {
-      return res.status(400).send(error);
-    }
+    handle(error, res);
   }
 });
 router.patch(
   "/product/:id",
   auth.admin("gallery", "write"),
-
   async (req, res) => {
     try {
       const product = await Product.findOne({ _id: req.params.id });
+      const clonedProd = JSON.parse(JSON.stringify(product));
       if (!product) {
         return res.status(404).send("no product founded");
       }
@@ -175,38 +154,20 @@ router.patch(
       updates.forEach((e) => {
         product[e] = req.body[e];
       });
-
       await product.save();
-      res.status(200).send({
-        product,
+
+      req.body.photos.push(...(await uploud("products", req.body?.newPhotos)));
+      deletedPhotos = clonedProd.photos.filter((ele) => {
+        return !req.body.photos.includes(ele);
       });
+      await remove(deletedPhotos);
+      updates.forEach((e) => {
+        product[e] = req.body[e];
+      });
+      await product.save();
+      res.status(200).send(product);
     } catch (error) {
-      if (error.name === "ValidationError") {
-        if (error.errors) {
-          const validationErrors = {};
-          for (const field in error.errors) {
-            if (error.errors.hasOwnProperty(field)) {
-              validationErrors[field] = {
-                message: error.errors[field].message,
-              };
-            }
-          }
-          return res.status(422).send({ errors: validationErrors });
-        } else {
-          return res.status(422).send({ errors: { general: error.message } });
-        }
-      } else if (error.code === 11000) {
-        // Duplicate key error
-        const field = Object.keys(error.keyValue)[0];
-        const duplicateError = {
-          [field]: {
-            message: `The ${field} '${error.keyValue[field]}' is already in use.`,
-          },
-        };
-        return res.status(422).send({ errors: duplicateError });
-      } else {
-        return res.status(400).send(error);
-      }
+      handle(error, res);
     }
   }
 );
@@ -217,6 +178,7 @@ router.delete(
     const product = await Product.findOneAndDelete({
       _id: req.params.id,
     });
+    remove(product.photos);
     if (!product) {
       return res.status(404).send("no product founded");
     }
