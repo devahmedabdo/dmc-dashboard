@@ -3,6 +3,7 @@ const router = express.Router();
 const Project = require("../models/project");
 const auth = require("../middelware/auth");
 const mongoose = require("mongoose");
+const { remove, uploud } = require("../services/uploder");
 // all project admins
 router.get(
   "/panel/projects",
@@ -109,6 +110,8 @@ router.post("/project", auth.admin("projects", "add"), async (req, res) => {
   try {
     const project = await new Project(req.body);
     await project.save();
+    project.photos = await uploud("projects", req.body?.newPhotos);
+    await project.save();
     res.status(200).send(project);
   } catch (e) {
     res.status(400).send(e.message);
@@ -121,17 +124,28 @@ router.patch(
   async (req, res) => {
     try {
       const project = await Project.findOne({ _id: req.params.id });
+      const clonedproject = JSON.parse(JSON.stringify(project));
+      const updates = Object.keys(req.body);
       if (!project) {
         return res.status(404).send({ message: "المشروع غير موجود" });
       }
-      const updates = Object.keys(req.body);
+
       updates.forEach((e) => {
         project[e] = req.body[e];
       });
       await project.save();
-      res.status(200).send({
-        project,
+
+      req.body.photos.push(...(await uploud("projects", req.body?.newPhotos)));
+      const deletedPhotos = clonedproject.photos.filter((ele) => {
+        return !req.body.photos.includes(ele);
       });
+      await remove(deletedPhotos);
+      updates.forEach((e) => {
+        convoy[e] = req.body[e];
+      });
+
+      await project.save();
+      res.status(200).send(project);
     } catch (e) {
       res.status(400).send(e.message);
     }
@@ -148,6 +162,8 @@ router.delete(
     if (!project) {
       return res.status(404).send({ message: "المشروع غير موجود" });
     }
+    remove(project.photos);
+
     res.status(200).send(project);
   }
 );

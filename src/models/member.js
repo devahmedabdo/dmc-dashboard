@@ -88,12 +88,11 @@ const memberSchema = mongoose.Schema({
   },
   image: {
     type: String,
-    required: true,
+    default: "",
   },
   status: {
     type: String,
-    required: true,
-    default: "0",
+    default: "1",
   },
   // 0 blocked
   // 1 new
@@ -102,12 +101,10 @@ const memberSchema = mongoose.Schema({
 
   card: {
     type: Boolean,
-    required: true,
     default: false,
   },
   showImg: {
     type: Boolean,
-    required: true,
     default: false,
   },
   convoys: [

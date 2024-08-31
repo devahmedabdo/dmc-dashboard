@@ -6,6 +6,8 @@ const auth = require("../middelware/auth");
 const Member = require("../models/member");
 const jwt = require("jsonwebtoken");
 const mail = require("../statics/mail");
+const { uploud, remove } = require("../services/uploder");
+const handle = require("../services/errorhandler");
 router.get("/seeding", (req, res) => {
   try {
     // Your seeding logic here, e.g., inserting data into a database
@@ -107,30 +109,7 @@ router.post("/admin", auth.admin("users", "add"), async (req, res) => {
     await admin.save();
     res.status(201).send(admin);
   } catch (error) {
-    if (error.name === "ValidationError") {
-      if (error.errors) {
-        const validationErrors = {};
-        for (const field in error.errors) {
-          if (error.errors.hasOwnProperty(field)) {
-            validationErrors[field] = { message: error.errors[field].message };
-          }
-        }
-        return res.status(422).send({ errors: validationErrors });
-      } else {
-        return res.status(422).send({ errors: { general: error.message } });
-      }
-    } else if (error.code === 11000) {
-      // Duplicate key error
-      const field = Object.keys(error.keyValue)[0];
-      const duplicateError = {
-        [field]: {
-          message: `القيمة موجودة مسبقا `,
-        },
-      };
-      return res.status(422).send({ errors: duplicateError });
-    } else {
-      return res.status(400).send(error);
-    }
+    handle(error, res);
   }
 });
 // update admin
@@ -333,35 +312,36 @@ router.post("/admin/change-password/:token", async (req, res) => {
 router.post("/admin/member", auth.admin("members", "add"), async (req, res) => {
   try {
     !req.body.convoys ? (req.body.convoys = []) : "";
-
-    const member = await new Member(req.body);
+    Object.keys(req.body).forEach((key) => {
+      if (req.body[key] === null) {
+        delete req.body[key];
+      }
+    });
+    let member = await new Member(req.body);
+    if (!req.body.newImage) {
+      return res.status(422).send({
+        errors: {
+          image: {
+            message: "حقل الصورة مطلوب",
+          },
+        },
+      });
+    }
+    await member.save();
+    const uploadedImg = await uploud("avatars", [req.body?.newImage]);
+    if (uploadedImg) {
+      member["image"] = uploadedImg[0];
+    } else {
+      res.status(409).send({
+        message: "خطأ اثناء رفع الصورة",
+      });
+    }
+    // // console.log(await uploud("avatars", [req.body?.newImage]));
+    // console.log(member);
     await member.save();
     res.status(201).send(member);
   } catch (error) {
-    if (error.name === "ValidationError") {
-      if (error.errors) {
-        const validationErrors = {};
-        for (const field in error.errors) {
-          if (error.errors.hasOwnProperty(field)) {
-            validationErrors[field] = { message: error.errors[field].message };
-          }
-        }
-        return res.status(422).send({ errors: validationErrors });
-      } else {
-        return res.status(422).send({ errors: { general: error.message } });
-      }
-    } else if (error.code === 11000) {
-      // Duplicate key error
-      const field = Object.keys(error.keyValue)[0];
-      const duplicateError = {
-        [field]: {
-          message: `The ${field} '${error.keyValue[field]}' is already in use.`,
-        },
-      };
-      return res.status(422).send({ errors: duplicateError });
-    } else {
-      return res.status(400).send(error);
-    }
+    handle(error, res);
   }
 });
 router.get(
@@ -386,22 +366,35 @@ router.patch(
   auth.admin("members", "write"),
   async (req, res) => {
     try {
-      const member = await Member.findOne({
+      let member = await Member.findOne({
         _id: req.params.id,
       });
       if (!member) {
         return res.status(404).send({ message: "العضو غير موجود" });
       }
-
-      let oldStatus = member.status;
-
+      let oldStatus = JSON.parse(JSON.stringify(member.status));
       const updates = Object.keys(req.body);
       updates.forEach((e) => {
         if (e == "card" || e == "showImg") {
           return;
         }
         member[e] = req.body[e];
+        if (req.body[e] === null) {
+          delete req.body[e];
+        }
       });
+      await member.save();
+
+      const uploadedImg = await uploud("avatars", [req.body?.newImage]);
+      if (uploadedImg) {
+        if (member.image) await remove([member.image]);
+        member["image"] = uploadedImg[0];
+      } else {
+        res.status(409).send({
+          message: "خطأ اثناء رفع الصورة",
+        });
+      }
+
       await member.save();
       if (oldStatus == 2 && member.status == 3) {
         mail.sendEmail("member23", member, member.email).then((data) => {});
@@ -411,32 +404,8 @@ router.patch(
       }
       res.status(200).send(member);
     } catch (error) {
-      if (error.name === "ValidationError") {
-        if (error.errors) {
-          const validationErrors = {};
-          for (const field in error.errors) {
-            if (error.errors.hasOwnProperty(field)) {
-              validationErrors[field] = {
-                message: error.errors[field].message,
-              };
-            }
-          }
-          return res.status(422).send({ errors: validationErrors });
-        } else {
-          return res.status(422).send({ errors: { general: error.message } });
-        }
-      } else if (error.code === 11000) {
-        // Duplicate key error
-        const field = Object.keys(error.keyValue)[0];
-        const duplicateError = {
-          [field]: {
-            message: `القيمة موجودة بالفعل`,
-          },
-        };
-        return res.status(422).send({ errors: duplicateError });
-      } else {
-        return res.status(400).send(error);
-      }
+      console.log(error);
+      handle(error, res);
     }
   }
 );
@@ -451,6 +420,7 @@ router.delete(
       if (!member) {
         return res.status(404).send({ message: "العضو غير موجود" });
       }
+      remove([member.image]);
       res.status(200).send(member);
     } catch (e) {
       res.status(400).send(e);

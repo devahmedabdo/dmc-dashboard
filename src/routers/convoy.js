@@ -4,33 +4,27 @@ const Convoy = require("../models/convoy");
 const Member = require("../models/member");
 const { ObjectId } = require("mongodb");
 const auth = require("../middelware/auth");
+const { remove, uploud } = require("../services/uploder");
+const handle = require("../services/errorhandler");
 // add convoy
-router.post(
-  "/convoy",
-  auth.admin("convoys", "add"),
-
-  async (req, res) => {
-    try {
-      const convoy = await new Convoy(req.body);
-
-      if (req.body.participations?.length) {
-        for (let i = 0; i < req.body.participations?.length; i++) {
-          const member = await Member.findById(req.body.participations[i]);
-          member.convoys.push(convoy._id);
-          await member.save();
-        }
+router.post("/convoy", auth.admin("convoys", "add"), async (req, res) => {
+  try {
+    const convoy = await new Convoy(req.body);
+    await convoy.save();
+    if (req.body.participations?.length) {
+      for (let i = 0; i < req.body.participations?.length; i++) {
+        const member = await Member.findById(req.body.participations[i]);
+        member.convoys.push(convoy._id);
+        await member.save();
       }
-      await convoy.save();
-      res.status(200).send(convoy);
-    } catch (e) {
-      console.log(e);
-      if (e.name == "ValidationError") {
-        return res.status(422).send(e.errors);
-      }
-      res.status(400).send(e);
     }
+    convoy.photos = await uploud("convoys", req.body?.newPhotos);
+    await convoy.save();
+    res.status(200).send(convoy);
+  } catch (e) {
+    handle(e);
   }
-);
+});
 
 // for website
 router.get("/activeConvoys", async (req, res) => {
@@ -376,7 +370,6 @@ router.get("/convoy/members-card/:id", async (req, res) => {
 router.delete(
   "/convoy/:id",
   auth.admin("convoys", "delete"),
-
   async (req, res) => {
     try {
       const convoy = await Convoy.findOneAndDelete({
@@ -386,6 +379,8 @@ router.delete(
       if (!convoy) {
         return res.status(404).send(`convoy dosn't exist`);
       }
+      remove(convoy.photos);
+
       const members = await Member.find({ convoys: convoy._id });
       for (let i = 0; i < members.length; i++) {
         let index = members[i].convoys.indexOf(convoy._id);
@@ -408,13 +403,16 @@ router.patch(
       const convoy = await Convoy.findOne({
         _id: convoyID,
       });
+      const clonedconvoy = JSON.parse(JSON.stringify(convoy));
+      const updates = Object.keys(req.body);
       if (!convoy) {
         return res.status(404).send(`convoy dosn't exist`);
       }
-      const updates = Object.keys(req.body);
       updates.forEach((e) => {
         convoy[e] = req.body[e];
       });
+      await convoy.save();
+
       const members = await Member.find({ convoys: convoy._id });
       for (let i = 0; i < members.length; i++) {
         if (!convoy.participations.includes(members[i]._id)) {
@@ -438,7 +436,15 @@ router.patch(
           await member.save();
         }
       }
-      await convoy.save();
+      req.body.photos.push(...(await uploud("convoys", req.body?.newPhotos)));
+      const deletedPhotos = clonedconvoy.photos.filter((ele) => {
+        return !req.body.photos.includes(ele);
+      });
+      await remove(deletedPhotos);
+      updates.forEach((e) => {
+        convoy[e] = req.body[e];
+      });
+      await product.save();
       res.status(201).send(convoy);
     } catch (e) {
       console.log(e);

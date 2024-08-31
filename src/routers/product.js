@@ -157,7 +157,7 @@ router.patch(
       await product.save();
 
       req.body.photos.push(...(await uploud("products", req.body?.newPhotos)));
-      deletedPhotos = clonedProd.photos.filter((ele) => {
+      const deletedPhotos = clonedProd.photos.filter((ele) => {
         return !req.body.photos.includes(ele);
       });
       await remove(deletedPhotos);
@@ -178,10 +178,10 @@ router.delete(
     const product = await Product.findOneAndDelete({
       _id: req.params.id,
     });
-    remove(product.photos);
     if (!product) {
       return res.status(404).send("no product founded");
     }
+    remove(product.photos);
     res.status(200).send(product);
   }
 );
