@@ -227,16 +227,19 @@ router.get("/convoy/:id", async (req, res) => {
     forwards = {};
 
     convoy.collaborators.forEach((coll) => {
-      if (collabs[coll.specialization.name + "*" + coll.specialization.icon]) {
-        collabs[coll.specialization.name + "*" + coll.specialization.icon].push(
-          coll.name
-        );
+      if (
+        collabs[coll?.specialization?.name + "*" + coll?.specialization?.icon]
+      ) {
+        collabs[
+          coll?.specialization?.name + "*" + coll?.specialization?.icon
+        ].push(coll.name);
       } else {
         collabs[coll.specialization.name + "*" + coll.specialization.icon] = [
           coll.name,
         ];
       }
     });
+    console.log(convoy.forwards);
     convoy.forwards.forEach((coll) => {
       if (
         forwards[
@@ -295,6 +298,7 @@ router.get("/convoy/:id", async (req, res) => {
       },
     });
   } catch (e) {
+    console.log(e);
     res.status(401).send("401" + e);
   }
 });
