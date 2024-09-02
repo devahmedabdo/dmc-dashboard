@@ -413,10 +413,9 @@ router.patch(
       });
       await convoy.save();
 
-      const members = await Member.find({ convoys: convoy._id });
+      const members = await Member.find({ convoys: convoyID });
       for (let i = 0; i < members.length; i++) {
         if (!convoy.participations.includes(members[i]._id)) {
-          console.log("member id not in the participations");
           // we shuold remove the convoys id from member
           let index = members[i].convoys.indexOf(convoyID);
           members[i].convoys.splice(index, 1);
@@ -436,7 +435,9 @@ router.patch(
           await member.save();
         }
       }
-      req.body.photos.push(...(await uploud("convoys", req.body?.newPhotos)));
+      if (req.body?.newPhotos) {
+        req.body.photos.push(...(await uploud("convoys", req.body?.newPhotos)));
+      }
       const deletedPhotos = clonedconvoy.photos.filter((ele) => {
         return !req.body.photos.includes(ele);
       });
@@ -444,7 +445,7 @@ router.patch(
       updates.forEach((e) => {
         convoy[e] = req.body[e];
       });
-      await product.save();
+      await convoy.save();
       res.status(201).send(convoy);
     } catch (e) {
       console.log(e);
