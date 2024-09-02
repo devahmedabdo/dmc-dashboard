@@ -8,6 +8,8 @@ const jwt = require("jsonwebtoken");
 const mail = require("../statics/mail");
 const Role = require("../models/role");
 const Admin = require("../models/admin");
+const handle = require("../services/errorhandler");
+const { uploud, remove } = require("../services/uploder");
 
 let getAdminEmails = async () => {
   let admins = [];
@@ -34,40 +36,24 @@ router.post("/member", async (req, res) => {
     }
 
     !req.body.convoys ? (req.body.convoys = []) : "";
-    const member = await new Member(req.body);
+    let member = await new Member(req.body);
     const token = await member.generateToken();
+    await member.save();
+    const uploadedImg = await uploud("avatars", [req.body?.newImage]);
+    if (uploadedImg) {
+      member["image"] = uploadedImg[0];
+    } else {
+      res.status(409).send({
+        message: "خطأ اثناء رفع الصورة",
+      });
+    }
     await member.save();
 
     mail.sendEmail("signup", {}, await getAdminEmails()).then((data) => {});
 
     res.status(201).send({ member, token });
   } catch (error) {
-    if (error.name === "ValidationError") {
-      if (error.errors) {
-        const validationErrors = {};
-        for (const field in error.errors) {
-          if (error.errors.hasOwnProperty(field)) {
-            validationErrors[field] = {
-              message: error.errors[field].message,
-            };
-          }
-        }
-        return res.status(422).send(validationErrors);
-      } else {
-        return res.status(422).send({ errors: { general: error.message } });
-      }
-    } else if (error.code === 11000) {
-      // Duplicate key error
-      const field = Object.keys(error.keyValue)[0];
-      const duplicateError = {
-        [field]: {
-          message: `The ${field} '${error.keyValue[field]}' is already in use.`,
-        },
-      };
-      return res.status(422).send(duplicateError);
-    } else {
-      return res.status(400).send(error);
-    }
+    handle(error, res);
   }
 });
 
@@ -81,6 +67,18 @@ router.patch("/member", auth.member, async (req, res) => {
     sendMail = req.member.status == "3";
     req.member.status = "2";
     await req.member.save();
+    if (req.body?.newImage) {
+      const uploadedImg = await uploud("avatars", [req.body?.newImage]);
+      if (uploadedImg) {
+        await remove([req.member.image]);
+        req.member["image"] = uploadedImg[0];
+      } else {
+        return res.status(409).send({
+          message: "خطأ اثناء رفع الصورة",
+        });
+      }
+    }
+    await req.member.save();
 
     if (sendMail)
       mail
@@ -89,10 +87,7 @@ router.patch("/member", auth.member, async (req, res) => {
 
     res.status(201).send(req.member);
   } catch (e) {
-    if (e.name == "ValidationError") {
-      return res.status(422).send(e.errors);
-    }
-    res.status(400).send(e);
+    handle(e, res);
   }
 });
 // get member

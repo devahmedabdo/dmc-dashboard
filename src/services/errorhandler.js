@@ -23,6 +23,7 @@ function handle(error, res) {
     };
     return res.status(422).send({ errors: duplicateError });
   } else {
+    console.log(error);
     return res.status(400).send(error);
   }
 }
