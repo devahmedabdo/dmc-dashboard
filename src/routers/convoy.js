@@ -252,7 +252,6 @@ router.get("/convoy/:id", async (req, res) => {
         ];
       }
     });
-    console.log(convoy.forwards);
     convoy.forwards.forEach((coll) => {
       if (
         forwards[
@@ -261,6 +260,14 @@ router.get("/convoy/:id", async (req, res) => {
             coll.doctor.specialization.icon
         ]
       ) {
+        console.log(
+          forwards[
+            coll.doctor.specialization.name +
+              "*" +
+              coll.doctor.specialization.icon
+          ]
+        );
+
         forwards[
           coll.doctor.specialization.name +
             "*" +
@@ -453,6 +460,7 @@ router.patch(
         }
       }
       if (req.body?.newPhotos) {
+        console.log(req.body.photos);
         req.body.photos.push(...(await uploud("convoys", req.body?.newPhotos)));
       }
       const deletedPhotos = clonedconvoy.photos.filter((ele) => {
