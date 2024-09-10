@@ -190,7 +190,10 @@ router.get(
   auth.admin("collaborators", "read"),
   async (req, res) => {
     try {
-      const collaborators = await Collaborator.find({}, { _id: 1, name: 1 });
+      const collaborators = await Collaborator.find(
+        {},
+        { _id: 1, name: 1 }
+      ).sort({ specialization: 1 });
       res.send(collaborators);
     } catch (e) {
       res.status(400).send(e.message);

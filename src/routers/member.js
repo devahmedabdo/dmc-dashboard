@@ -72,11 +72,11 @@ router.patch("/member", auth.member, async (req, res) => {
       if (uploadedImg) {
         await remove([req.member.image]);
         req.member["image"] = uploadedImg[0];
-      } else {
-        return res.status(409).send({
-          message: "خطأ اثناء رفع الصورة",
-        });
+        return;
       }
+      return res.status(409).send({
+        message: "خطأ اثناء رفع الصورة",
+      });
     }
     await req.member.save();
 

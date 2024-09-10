@@ -385,14 +385,17 @@ router.patch(
       });
       await member.save();
 
-      const uploadedImg = await uploud("avatars", [req.body?.newImage]);
-      if (uploadedImg) {
-        if (member.image) await remove([member.image]);
-        member["image"] = uploadedImg[0];
-      } else {
-        res.status(409).send({
-          message: "خطأ اثناء رفع الصورة",
-        });
+      if (req.body?.newImage) {
+        const uploadedImg = await uploud("avatars", [req.body?.newImage]);
+        if (uploadedImg) {
+          if (member.image) await remove([member.image]);
+          member["image"] = uploadedImg[0];
+          return;
+        } else {
+          res.status(409).send({
+            message: "خطأ اثناء رفع الصورة",
+          });
+        }
       }
 
       await member.save();
@@ -479,7 +482,9 @@ router.get(
   auth.admin("members", "read"),
   async (req, res) => {
     try {
-      const members = await Member.find({}, { name: 1, _id: 1 });
+      const members = await Member.find({}, { name: 1, _id: 1 }).sort({
+        "name.first.ar": 1,
+      });
       res.send(members);
     } catch (e) {
       res.status(400).send(e);

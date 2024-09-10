@@ -164,7 +164,12 @@ router.get(
   auth.admin("specializations", "read"),
   async (req, res) => {
     try {
-      const specialization = await Specialization.find({}, { name: 1, _id: 1 });
+      const specialization = await Specialization.find(
+        {},
+        { name: 1, _id: 1 }
+      ).sort({
+        name: 1,
+      });
       res.send(specialization);
     } catch (e) {
       res.status(400).send(e.message);

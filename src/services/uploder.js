@@ -32,14 +32,11 @@ async function remove(urls) {
       const public_id = extractPublicId(urls[i]);
       await cloudinary.uploader
         .destroy(public_id)
-        .then(() => {
-          console.log("removed");
-        })
+        .then(() => {})
         .catch((e) => {
           console.log(e);
         });
     }
-    console.log("remove");
   } catch (error) {
     console.log(error);
     throw new Error(error);

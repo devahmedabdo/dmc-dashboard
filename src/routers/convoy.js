@@ -41,6 +41,11 @@ router.get("/activeConvoys", async (req, res) => {
       {
         $facet: {
           data: [
+            {
+              $sort: {
+                "description.order": 1, // Sort by description.order in ascending order. Use -1 for descending.
+              },
+            },
             { $skip: skip },
             { $limit: limit },
             {
@@ -125,7 +130,15 @@ router.get("/convoys", auth.admin("convoys", "read"), async (req, res) => {
 
       {
         $facet: {
-          data: [{ $skip: skip }, { $limit: limit }],
+          data: [
+            {
+              $sort: {
+                "description.order": 1, // Sort by description.order in ascending order. Use -1 for descending.
+              },
+            },
+            { $skip: skip },
+            { $limit: limit },
+          ],
           count: [{ $count: "count" }],
         },
       },
@@ -464,7 +477,7 @@ router.get("/select/convoys", async (req, res) => {
     let convoys = await Convoy.find(
       { status: "1" },
       { id: 1, description: { address: 1 } }
-    );
+    ).sort({ "description.order": 1 });
     res.status(200).send(convoys);
   } catch (e) {
     res.status(400).send(e);
