@@ -133,8 +133,10 @@ router.post("/product", auth.admin("gallery", "add"), async (req, res) => {
   try {
     const product = await new Product(req.body);
     await product.save();
-    product.photos = await uploud("products", req.body?.newPhotos);
-    await product.save();
+    if (req.body?.newPhotos?.length) {
+      product.photos = await uploud("products", req.body?.newPhotos);
+      await product.save();
+    }
     res.status(200).send("product");
   } catch (error) {
     handle(error, res);

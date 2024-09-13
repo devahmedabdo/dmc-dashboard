@@ -4,6 +4,7 @@ const Role = require("../models/role");
 const auth = require("../middelware/auth");
 const permissions = require("../middelware/roles");
 const Admin = require("../models/admin");
+const handle = require("../services/errorhandler");
 
 // all role
 router.get("/roles", auth.admin("roles", "read"), async (req, res) => {
@@ -41,46 +42,22 @@ router.get("/roles", auth.admin("roles", "read"), async (req, res) => {
 });
 router.post("/role", auth.admin("roles", "add"), async (req, res) => {
   try {
+    console.log(req.body);
     const role = await new Role(req.body);
     await role.save();
     res.status(200).send(role);
   } catch (error) {
-    if (error.name === "ValidationError") {
-      if (error.errors) {
-        const validationErrors = {};
-        for (const field in error.errors) {
-          if (error.errors.hasOwnProperty(field)) {
-            validationErrors[field] = {
-              message: error.errors[field].message,
-            };
-          }
-        }
-        return res.status(422).send({ errors: validationErrors });
-      } else {
-        return res.status(422).send({ errors: { general: error.message } });
-      }
-    } else if (error.code === 11000) {
-      // Duplicate key error
-      const field = Object.keys(error.keyValue)[0];
-      const duplicateError = {
-        [field]: {
-          message: `القيمة موجودة مسبقا `,
-        },
-      };
-      return res.status(422).send({ errors: duplicateError });
-    } else {
-      return res.status(400).send(error);
-    }
+    console.log(error);
+    handle(error, res);
   }
 });
 router.patch("/role/:id", auth.admin("roles", "write"), async (req, res) => {
   try {
     const role = await Role.findOne({ _id: req.params.id });
-    console.log(role);
     if (!role) {
       return res.status(404).send("no role founded");
     }
-    if (role.title == "ادمن") {
+    if (role.name == "ادمن") {
       return res.status(409).send("صلاحية الادمن غير قابلة للتعديل");
     }
     const updates = Object.keys(req.body);
@@ -93,32 +70,7 @@ router.patch("/role/:id", auth.admin("roles", "write"), async (req, res) => {
       role,
     });
   } catch (error) {
-    if (error.name === "ValidationError") {
-      if (error.errors) {
-        const validationErrors = {};
-        for (const field in error.errors) {
-          if (error.errors.hasOwnProperty(field)) {
-            validationErrors[field] = {
-              message: error.errors[field].message,
-            };
-          }
-        }
-        return res.status(422).send({ errors: validationErrors });
-      } else {
-        return res.status(422).send({ errors: { general: error.message } });
-      }
-    } else if (error.code === 11000) {
-      // Duplicate key error
-      const field = Object.keys(error.keyValue)[0];
-      const duplicateError = {
-        [field]: {
-          message: `القيمة موجودة مسبقا `,
-        },
-      };
-      return res.status(422).send({ errors: duplicateError });
-    } else {
-      return res.status(400).send(error);
-    }
+    handle(error, res);
   }
 });
 router.delete("/role/:id", auth.admin("roles", "delete"), async (req, res) => {

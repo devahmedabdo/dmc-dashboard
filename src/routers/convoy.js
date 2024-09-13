@@ -460,7 +460,6 @@ router.patch(
         }
       }
       if (req.body?.newPhotos) {
-        console.log(req.body.photos);
         req.body.photos.push(...(await uploud("convoys", req.body?.newPhotos)));
       }
       const deletedPhotos = clonedconvoy.photos.filter((ele) => {

@@ -4,6 +4,7 @@ const Project = require("../models/project");
 const auth = require("../middelware/auth");
 const mongoose = require("mongoose");
 const { remove, uploud } = require("../services/uploder");
+const handle = require("../services/errorhandler");
 // all project admins
 router.get(
   "/panel/projects",
@@ -114,7 +115,7 @@ router.post("/project", auth.admin("projects", "add"), async (req, res) => {
     await project.save();
     res.status(200).send(project);
   } catch (e) {
-    res.status(400).send(e.message);
+    handle(e, res);
   }
 });
 router.patch(
@@ -135,19 +136,24 @@ router.patch(
       });
       await project.save();
 
-      req.body.photos.push(...(await uploud("projects", req.body?.newPhotos)));
-      const deletedPhotos = clonedproject.photos.filter((ele) => {
-        return !req.body.photos.includes(ele);
-      });
-      await remove(deletedPhotos);
-      updates.forEach((e) => {
-        convoy[e] = req.body[e];
-      });
+      if (req.body?.newPhotos?.length) {
+        req.body.photos.push(
+          ...(await uploud("projects", req.body?.newPhotos))
+        );
+        const deletedPhotos = clonedproject.photos.filter((ele) => {
+          return !req.body.photos.includes(ele);
+        });
+        await remove(deletedPhotos);
+        updates.forEach((e) => {
+          convoy[e] = req.body[e];
+        });
+        await project.save();
+      }
 
-      await project.save();
       res.status(200).send(project);
     } catch (e) {
-      res.status(400).send(e.message);
+      console.log(e);
+      handle(e, res);
     }
   }
 );

@@ -1,6 +1,6 @@
 const cloudinary = require("../middelware/uploud");
 
-async function uploud(folder, imgs) {
+async function uploud(folder, imgs = []) {
   try {
     const uploadPromises = imgs.map((image) =>
       cloudinary.uploader.upload(image, {
@@ -10,11 +10,14 @@ async function uploud(folder, imgs) {
       })
     );
     const results = await Promise.all(uploadPromises);
-    let urls = results.map((ele) => {
-      return ele.url;
-    });
+    let urls = [];
+    if (results.length) {
+      urls = results.map((ele) => {
+        return ele.url;
+      });
+    }
 
-    return urls ?? [];
+    return urls;
   } catch (e) {
     console.log(e);
   }
@@ -26,9 +29,9 @@ function extractPublicId(url) {
     .join("/")
     .replace(/\.[^/.]+$/, "");
 }
-async function remove(urls) {
+async function remove(urls = []) {
   try {
-    for (let i = 0; i < urls.length; i++) {
+    for (let i = 0; i < urls?.length; i++) {
       const public_id = extractPublicId(urls[i]);
       await cloudinary.uploader
         .destroy(public_id)
