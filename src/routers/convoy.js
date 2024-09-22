@@ -459,7 +459,7 @@ router.patch(
           await member.save();
         }
       }
-      if (req.body?.newPhotos) {
+      if (req.body?.newPhotos?.length) {
         req.body.photos.push(...(await uploud("convoys", req.body?.newPhotos)));
       }
       const deletedPhotos = clonedconvoy.photos.filter((ele) => {

@@ -137,7 +137,7 @@ router.post("/product", auth.admin("gallery", "add"), async (req, res) => {
       product.photos = await uploud("products", req.body?.newPhotos);
       await product.save();
     }
-    res.status(200).send("product");
+    res.status(200).send({ product });
   } catch (error) {
     handle(error, res);
   }

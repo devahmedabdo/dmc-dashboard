@@ -5,7 +5,6 @@ const collaboratorSchema = mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    unique: [true, "awdawd"],
   },
   price: {
     type: Number,
@@ -18,12 +17,10 @@ const collaboratorSchema = mongoose.Schema({
   },
   postLink: {
     type: String,
-    required: true,
     trim: true,
   },
   status: {
     type: String,
-    required: true,
     default: "0",
   },
   photos: [],
