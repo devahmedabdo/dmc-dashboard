@@ -388,17 +388,18 @@ router.patch(
       if (req.body?.newImage) {
         const uploadedImg = await uploud("avatars", [req.body?.newImage]);
         if (uploadedImg) {
-          if (member.image) await remove([member.image]);
+          if (member.image) {
+            await remove([member.image]);
+          }
           member["image"] = uploadedImg[0];
-          return;
         } else {
           res.status(409).send({
             message: "خطأ اثناء رفع الصورة",
           });
         }
+        await member.save();
       }
 
-      await member.save();
       if (oldStatus == 2 && member.status == 3) {
         mail.sendEmail("member23", member, member.email).then((data) => {});
       }
