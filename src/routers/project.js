@@ -145,7 +145,7 @@ router.patch(
         });
         await remove(deletedPhotos);
         updates.forEach((e) => {
-          convoy[e] = req.body[e];
+          project[e] = req.body[e];
         });
         await project.save();
       }
