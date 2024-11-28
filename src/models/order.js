@@ -14,7 +14,7 @@ const orderSchema = mongoose.Schema(
       trim: true,
       lowercase: true,
       validate(value) {
-        if (!validator.isEmail(value)) {
+        if (!validator.isEmail(value, { host_whitelist: ["gmail.com"] })) {
           throw new Error("Please Enter Valid Email");
         }
       },

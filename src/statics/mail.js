@@ -20,7 +20,7 @@ function sendEmail(type, data, email) {
       },
     });
     const mailOption = {
-      from: process.env.MY_SECRET_EMAIL,
+      from: "DMC Team",
       to: email,
       subject: subjects[type],
       html: emails.getEmails(type, data),
